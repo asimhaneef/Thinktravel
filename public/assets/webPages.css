@@ -1,0 +1,50 @@
+.tab-option{
+    position: relative;
+    display: inline-block;
+    padding: 10px 16px 10px 10px;
+    margin-top: 10px;		
+    line-height: 1.5;
+    border-style: solid;
+    border-color: #FFFFFF;
+    border-width: 2px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: "Montserrat", cursive;
+    color: #82b62d;  
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius:5px;
+    margin-block-start: 1em;
+    margin-block-end: 2em;
+    margin-inline-start: 0px;
+    margin-inline-end: 40px;
+    padding-inline-start: 40px;
+    opacity: 50; 
+}
+.tab-active{
+    background-color:rgba(40, 46, 60, 0.4);
+    background:rgba(40, 46, 60, 0.4);
+    color: #ffffff;
+    opacity: 50;
+}
+.tab-active {
+    background-color: rgba(40, 46, 60, 0.4);
+    background: rgba(40, 46, 60, 0.4);
+    color: #ffffff;
+    opacity: 50;
+    min-width: 150px;
+    text-align: center;
+    padding: 10px; 
+}
+.social-space {
+    margin-right: 10px;
+}
+.rd-navbar-top-panel.rd-navbar-static .rd-navbar-inner > .rd-navbar-top-panel {
+    margin-bottom: 10px !important;
+}
+.rd-navbar-top-panel.rd-navbar-static .rd-navbar-inner {
+    padding: 0 0 20px;
+}
+.rd-navbar-menu-wrap {
+    margin-top: 5px;
+}
