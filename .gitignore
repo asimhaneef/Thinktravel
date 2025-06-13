@@ -1,3 +1,56 @@
-node_modules
+# Laravel base
 /vendor
+/node_modules
+/public/storage
+/storage/*.key
+.env
+.env.*.php
 
+# Laravel specific
+.phpunit.result.cache
+Homestead.yaml
+Homestead.json
+npm-debug.log
+yarn-error.log
+composer.lock
+.env.backup
+
+# Laravel IDE Helper (optional)
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
+
+# Laravel Telescope
+storage/telescope
+
+# Laravel Horizon
+horizon.log
+
+# Jetstream / Fortify
+/public/hot
+/public/mix-manifest.json
+
+# Vite-related
+/resources/js/.vite
+/resources/css/.vite
+/vite.config.js
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.idea
+.vscode
+*.swp
+*.swo
+
+# Log files
+*.log
+/storage/logs/*.log
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/framework/testing/*
+
+# Backup or temp
+*.bak
+*.tmp
