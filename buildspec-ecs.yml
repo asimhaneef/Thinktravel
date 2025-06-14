@@ -1,23 +1,29 @@
 version: 0.2
+
 phases:
+  install:
+    commands:
+      - echo "Installing prerequisites..."
+      - echo "Downloading .env from S3..."
+      - aws s3 cp s3://thinktravel-variables/env .env
+      - echo "Sourcing environment variables from .env..."
+      - export $(grep -v '^#' .env | xargs)
+
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION_BD | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION_BD.amazonaws.com
+
   build:
     commands:
       - echo "Packaging Lambda function...."
       - cd back
       - echo "Using PHP version"
       - aws lambda invoke --function-name $Function --region us-east-2 --payload '{}' response.json
-      - php -v  # This will print the PHP version currently used.
-      #- composer update 
-      #- phpenv install 8.2.0
-      ##- phpenv global 8.2.0
+      - php -v
       - composer install
       - echo "Using PHP version after update"
-      - php -v  # Verify PHP version again
-      ##- composer install --no-dev --prefer-dist
+      - php -v
       - composer --version
       - chmod -R 755 vendor
       - chmod -R 777 bootstrap/*
@@ -26,59 +32,24 @@ phases:
       - php artisan cache:clear
       - php artisan view:clear
       - php artisan optimize:clear
-      #- php artisan migrate
-      - export DB_CONNECTION=$DB_CONNECTION
-      - export DB_HOST=$DB_HOST
-      - export DB_PORT=$DB_PORT
-      - export DB_DATABASE=$DB_DATABASE
-      - export DB_USERNAME=$DB_USERNAME
-      - export DB_PASSWORD=$DB_PASSWORD
-      - export SESSION_DRIVER=$SESSION_DRIVER
-      - export SESSION_LIFETIME=$SESSION_LIFETIME
-      - export SESSION_ENCRYPT=$SESSION_ENCRYPT
-      - export SESSION_PATH=$SESSION_PATH
-      - export SESSION_DOMAIN=$SESSION_DOMAIN
-      - export BROADCAST_CONNECTION=$BROADCAST_CONNECTION
-      - export FILESYSTEM_DISK=$FILESYSTEM_DISK
-      - export QUEUE_CONNECTION=$QUEUE_CONNECTION
-      - export CACHE_STORE=$CACHE_STORE
-      - export CACHE_PREFIX=$CACHE_PREFIX
-      - export MEMCACHED_HOST=$MEMCACHED_HOST
-      - export REDIS_CLIENT=$REDIS_CLIENT
-      - export REDIS_HOST=$REDIS_HOST
-      - export REDIS_PASSWORD=$REDIS_PASSWORD
-      - export REDIS_PORT=$REDIS_PORT
-      - export MAIL_MAILER=$MAIL_MAILER
-      - export MAIL_HOST=$MAIL_HOST
-      - export MAIL_PORT=$MAIL_PORT
-      - export MAIL_USERNAME=$MAIL_USERNAME
-      - export MAIL_PASSWORD=$MAIL_PASSWORD
-      - export MAIL_ENCRYPTION=$MAIL_ENCRYPTION
-      - export MAIL_FROM_ADDRESS=$MAIL_FROM_ADDRESS
-      - export MAIL_FROM_NAME=$MAIL_FROM_NAME
-      - export OWNER_EMAIL=$OWNER_EMAIL
-      #- export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-      #- export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-      #- export AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
-      - export AWS_BUCKET=$AWS_BUCKET
-      - export AWS_USE_PATH_STYLE_ENDPOINT=$AWS_USE_PATH_STYLE_ENDPOINT
-      - export VITE_APP_NAME=$VITE_APP_NAME
-      - export APP_TIMEZONE=$APP_TIMEZONE      
+      # - php artisan migrate  # Uncomment if needed
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION_BD.amazonaws.com/$IMAGE_REPO_NAME
       - echo Build started on `date`
       - ls
       - echo Building the Docker image...
       - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
-      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION_BD.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
-      #- aws lambda invoke --function-name $Function --region us-east-2 --payload '{}' response.json
+      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $REPOSITORY_URI:$IMAGE_TAG
+
   post_build:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker image...
-      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION_BD.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
       - cd ..
       - echo deploy started
       - ls
       - printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER_NAME $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+
 artifacts:
-    files: imagedefinitions.json
+  files:
+    - imagedefinitions.json
