@@ -66,6 +66,7 @@ phases:
       - export AWS_DEFAULT_REGION_BD=$AWS_DEFAULT_REGION_BD
       - export IMAGE_REPO_NAME=$IMAGE_REPO_NAME
       - export CONTAINER_NAME=$CONTAINER_NAME
+      - IMAGE_TAG=$CODEBUILD_BUILD_NUMBER
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION_BD.amazonaws.com/$IMAGE_REPO_NAME
       - echo Build started on `date`
       - ls
