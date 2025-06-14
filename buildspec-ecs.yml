@@ -7,7 +7,6 @@ phases:
   build:
     commands:
       - echo "Packaging Lambda function...."
-      - cd back
       - echo "Using PHP version"
       - aws lambda invoke --function-name $Function --region us-east-2 --payload '{}' response.json
       - php -v  # This will print the PHP version currently used.
