@@ -71,7 +71,7 @@ phases:
       - echo Build started on `date`
       - yarn install
       - yarn run build
-      - cp -r /public/build /
+      - cp -r public/build /  # or specify your destination more precisely
       - ls
       - echo Building the Docker image...
       - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
