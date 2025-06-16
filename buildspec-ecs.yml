@@ -69,6 +69,8 @@ phases:
       - IMAGE_TAG=$CODEBUILD_BUILD_NUMBER
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION_BD.amazonaws.com/$IMAGE_REPO_NAME
       - echo Build started on `date`
+      - yarn install
+      - yarn run build
       - ls
       - echo Building the Docker image...
       - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
