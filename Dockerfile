@@ -34,8 +34,6 @@ RUN chmod -R 777 storage bootstrap/cache
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-#COPY . .
-cp -r /var/www/html/public/build /var/www/html/
 
 # Expose Laravel and Vite ports
 EXPOSE 8000 5173
