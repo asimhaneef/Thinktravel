@@ -25,6 +25,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 # Install Node packages
 RUN yarn install
+RUN yarn build
 
 # Laravel permissions
 RUN chmod -R 777 storage bootstrap/cache
@@ -32,6 +33,8 @@ RUN chmod -R 777 storage bootstrap/cache
 # Copy and use the custom bash script
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
+
+COPY . .
 
 # Expose Laravel and Vite ports
 EXPOSE 8000 5173
