@@ -38,5 +38,5 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 # Expose Laravel and Vite ports
 EXPOSE 8000 5173
 
-# Run both Laravel and Vite via bash script
-CMD ["/usr/local/bin/entrypoint.sh"]
+# Run both Laravel and Vite via bash scrip
+CMD ["php", "artisan", "serve"]
