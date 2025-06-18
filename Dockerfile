@@ -39,4 +39,4 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 EXPOSE 8000 5173
 
 # Run both Laravel and Vite via bash scrip
-CMD ["php", "artisan", "serve"]
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
