@@ -18,9 +18,15 @@
             </div>
         </div>
     </div>
-    <DataTable :value="cruiseInquiries" :rows="rows" scrollable  filterDisplay="menu" scrollHeight="400px" 
-    sortMode="multiple" tableStyle="min-width: 50rem" :loading="loading"
-        :filters="filters"  :rowsPerPageOptions="[10, 20, 50]">
+    <DataTable 
+    :value="cruiseInquiries" 
+    :rows="rows" scrollable  filterDisplay="menu" scrollHeight="400px" 
+    tableStyle="min-width: 50rem" 
+    :loading="loading"
+    v-model:filters="filters"  :rowsPerPageOptions="[10, 20, 50]"
+    @update:filters="onFilter" 
+    @sort="onSort" 
+    @page="onPage">
         <!-- Columns for Cruises -->
         <Column field="inquiry_code" header="Inq. No." sortable :showFilterMatchModes="false">
             <template #filter="{ filterModel }">

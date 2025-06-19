@@ -18,9 +18,19 @@
         </div>
     </div>
     
-    <DataTable :value="flightInquiries" :rows="rows" scrollable  filterDisplay="menu" scrollHeight="400px" 
-    sortMode="multiple" tableStyle="min-width: 50rem" :loading="loading"
-        :filters="filters" :rowsPerPageOptions="[10, 20, 50]">
+    <DataTable 
+        v-model:filters="filters" 
+        :value="flightInquiries" 
+        :rows="rows" scrollable  
+        dataKey="id"
+        filterDisplay="menu" 
+        scrollHeight="400px"
+        tableStyle="min-width: 50rem" 
+        :loading="loading" 
+        @update:filters="onFilter" 
+        @sort="onSort" 
+        @page="onPage"
+                            >
         <!-- Columns for Flights -->
         <Column field="inquiry_code" header="Inq. No." sortable :showFilterMatchModes="false">
             <template #filter="{ filterModel }">
@@ -753,7 +763,7 @@ export default {
             return "N/A";
         },
         
-      addFlightDetail() {
+        addFlightDetail() {
             this.form.booking_flight.push({
                 flying_from: '',
                 flying_to: '',
@@ -797,7 +807,7 @@ export default {
             return "N/A";
         },
         
-      async saveEnquiry() {
+        async saveEnquiry() {
             this.isSubmitting = true; // Show loader
             const formData = new FormData();
 
@@ -1129,6 +1139,7 @@ export default {
             this.applyFilter('filter', filters);
         },
         onSort(event) {
+            console.log(event);
             this.sortField = event.sortField;
             this.sortOrder = event.sortOrder;
             this.applyFilter('sort', event);

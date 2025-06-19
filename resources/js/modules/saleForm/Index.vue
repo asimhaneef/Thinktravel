@@ -18,9 +18,18 @@
         </div>
     </div>
     
-    <DataTable  v-model:filters="filters" :value="saleForms"  filterDisplay="menu" :rows="rows" scrollable scrollHeight="400px" 
-    sortMode="multiple" tableStyle="min-width: 50rem" :loading="loading"
-        :filters="filters"  :rowsPerPageOptions="[10, 20, 50]">
+    <DataTable  
+    v-model:filters="filters" 
+    :value="saleForms"  
+    :rows="rows" 
+    dataKey="id"
+    filterDisplay="menu" 
+    scrollable scrollHeight="450px" 
+    tableStyle="min-width: 50rem" 
+    :loading="loading"
+    @update:filters="onFilter" 
+    @sort="onSort"                             
+    @page="onPage" >
         <!-- Columns for Cruises -->
         <Column field="entry_date" header="Entry Date" sortable :showFilterMatchModes="false">
             <template #filter="{ filterModel }">
@@ -567,8 +576,9 @@ export default {
             loading: false,
             visibleRight: false,
             isSubmitting: false,
+            loading: false,
             filters: {
-                entry_date: { value: null },
+                entry_date: { value: null ,matchMode: 'contains' },
                 pnr: { value: null },
                 inquiry_no: { value: null },
                 departure_date: { value: null },
@@ -1362,10 +1372,11 @@ export default {
         },
         onFilter(filters) {
             this.page = 1;
-            this.filters = filters;
+            this.filters = { ...this.filters, ...filters };
             this.applyFilter('filter', filters);
         },
         onSort(event) {
+            console.log(event);
             this.sortField = event.sortField;
             this.sortOrder = event.sortOrder;
             this.applyFilter('sort', event);
