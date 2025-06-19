@@ -11,12 +11,6 @@
     <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700,700italic%7CMontserrat:400,700">
     <link href="{{ asset(config('constants.ASSETS_PATH') . '/webPages.css') }}" rel="stylesheet" />
     
-    @vite(['resources/js/core.min.js'])
-    @vite(['resources/css/web.css', 'resources/js/web.js'])
-    @vite(['resources/css/jquery-ui.css'])
-    @vite(['resources/js/jquery-1.12.4.js'])
-    @vite(['resources/js/jquery-ui.js'])
-    @vite(['resources/js/script.js'])
     
 </head>
 
