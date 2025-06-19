@@ -12,7 +12,6 @@
     <link href="{{ asset(config('constants.ASSETS_PATH') . '/webPages.css') }}" rel="stylesheet" />
     
     
-    
 </head>
 
 <body>
