@@ -1,18 +1,16 @@
 #!/bin/bash
 
-# Exit on error
-set -e
+echo "Running Laravel optimization commands..."
+php artisan config:clear || echo "Failed to clear config"
+php artisan cache:clear || echo "Failed to clear cache"
+php artisan config:cache || echo "Failed to cache config"
 
-# Clear and cache Laravel config
-php artisan config:clear
-php artisan cache:clear
-php artisan config:cache
+echo "Linking storage..."
+php artisan storage:link || echo "Failed to link storage"
 
-# Create storage symlink
-php artisan storage:link || true
+# Optional: run Vite dev server (if needed)
+# yarn dev &
 
-# Start Laravel backend
-php artisan serve --host=0.0.0.0 --port=8000 &
-
-# Start Vite dev server
-yarn run dev --host
+# Start Laravel server in foreground
+echo "Starting Laravel server on 0.0.0.0:8000..."
+exec php artisan serve --host=0.0.0.0 --port=8000

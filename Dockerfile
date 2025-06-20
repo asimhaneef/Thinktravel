@@ -34,9 +34,8 @@ RUN chmod -R 777 storage bootstrap/cache
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-
 # Expose Laravel and Vite ports
 EXPOSE 8000 5173
 
-# Run both Laravel and Vite via bash scrip
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+# Entrypoint script will handle everything
+CMD ["/usr/local/bin/entrypoint.sh"]
