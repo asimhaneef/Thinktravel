@@ -5,6 +5,17 @@
 
     RewriteEngine On
 
+    # Force HTTPS and www (optional - remove if you don't want www)
+    #=============================================================
+    RewriteCond %{HTTPS} off [OR]
+    RewriteCond %{HTTP_HOST} !^www\. [NC]
+    RewriteCond %{HTTP_HOST} ^(?:www\.)?(.+)$ [NC]
+    RewriteRule ^ https://www.%1%{REQUEST_URI} [L,R=301,NE]
+    
+    # Handle Proxy Scenarios (if behind load balancer)
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301,NE]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
