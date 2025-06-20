@@ -83,7 +83,6 @@ phases:
       - echo Build completed on `date`
       - echo Pushing the Docker image...
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION_BD.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
-      - cd ..
       - echo deploy started
       - ls
       - printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER_NAME $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
