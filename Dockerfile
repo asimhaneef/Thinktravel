@@ -29,7 +29,7 @@ RUN yarn build
 
 # Laravel permissions
 RUN chmod -R 777 storage bootstrap/cache
-
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 # Copy and use the custom bash script
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
