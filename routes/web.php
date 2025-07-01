@@ -58,6 +58,9 @@ Route::middleware(['auth', 'nocache'])->group(function () {
     // Two Factor Authentication
 
     // OR for traditional controllers:
+    Route::get('api/exportinquiries', function () {
+        return Excel::download(new \App\Exports\InquiriesExport(), 'inquiries.xlsx');
+    });
     Route::get('/two-factor-challenge', [TwoFactorAuthenticationController::class, 'showChallengeForm'])
         ->name('two-factor-challenge');
     Route::post('/user/two-factor-authentication', [TwoFactorAuthenticationController::class, 'enable']);

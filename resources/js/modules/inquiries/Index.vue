@@ -17,12 +17,26 @@
             </div>
         </div>
     </div> -->
-    <div class="content p-3">
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-12">
+                    <ol class="breadcrumb float-sm-right">
+                        <button class="btn btn-success" icon="pi pi-arrow-left" @click="exportInquiries" style="border-radius: 20px">
+                            Export Inquiries
+                        </button>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="content ">
         <div class="container-fluid">            
             <div class="row">
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body p-0">
+                                     
                             <TabView>
                                 <TabPanel header="Flights">
                                     <FlightsTab />
@@ -33,7 +47,8 @@
                                 <TabPanel header="Cruises">
                                     <CruisesTab />
                                 </TabPanel>
-                            </TabView>                                
+                            </TabView>  
+                                                      
                         </div>
                     </div>
                 </div>
@@ -63,7 +78,45 @@ export default {
         };
     },
     methods: {
-
+        async exportInquiries() {
+            try {
+                this.loading = true;
+                
+                // Get the authentication token
+                
+                // Make the request with the authentication token
+                const response = await axios.get('/api/exportinquiries', {
+                    responseType: 'blob', // Important for file downloads
+                    headers: {
+                        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    }
+                });
+                
+                // Create a download link for the Excel file
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'inquiries.xlsx');
+                document.body.appendChild(link);
+                link.click();
+                
+                // Clean up
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(link);
+                
+                this.loading = false;
+            } catch (error) {
+                console.error('Error Exporting Records:', error);
+                this.loading = false;
+                
+                // Show error message to user
+                if (error.response && error.response.status === 401) {
+                    alert('You need to be logged in to export inquiries.');
+                } else {
+                    alert('Failed to export inquiries. Please try again.');
+                }
+            }
+        },
     },
     created() {
         // this.getInquiries();
