@@ -35,7 +35,7 @@ RUN chmod -R 777 storage bootstrap/cache && \
     chown -R www-data:www-data /var/www/html
 
 # Add Apache virtual host config to serve from Laravel's public directory
-COPY apache-vhost.conf /etc/apache2/sites-available/000-default.conf
+#COPY apache-vhost.conf /etc/apache2/sites-available/000-default.conf
 
 # Copy custom entrypoint script
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
