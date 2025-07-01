@@ -42,7 +42,7 @@ COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Expose HTTP port
-EXPOSE 80
+EXPOSE 8000
 
 # Start the entrypoint script
 CMD ["/usr/local/bin/entrypoint.sh"]
