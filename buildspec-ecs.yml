@@ -13,7 +13,8 @@ phases:
       #- composer update 
       #- phpenv install 8.2.0
       ##- phpenv global 8.2.0
-      - composer install
+      #- composer install
+      - composer install -vvv
       - echo "Using PHP version after update"
       - php -v  # Verify PHP version again
       ##- composer install --no-dev --prefer-dist
