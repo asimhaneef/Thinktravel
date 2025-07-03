@@ -296,11 +296,11 @@
                          
                     </div>
                     <div class="form-group col-md-4">
-                        <div id="div_twoway_travel_doc_other" v-if="form.travel_doc === 'Other'"> Please Mention 
-                        <input id="twoway_travel_doc_other" type="text" v-model="form.twoway_travel_doc_other" class="form-control" style="background-color:white;" value="" />
+                        <div id="div_travel_doc_other" v-if="form.travel_doc === 'Other'"> Please Mention 
+                        <input id="travel_doc_other" type="text" v-model="form.travel_doc_other" class="form-control" style="background-color:white;" value="" />
                         </div>
-                        <div id="div_twoway_travel_doc_passport" v-if="form.travel_doc === 'Passport'"> Nationality &nbsp;&nbsp; 
-                            <input id="twoway_travel_doc_nationality" type="text" v-model="form.twoway_travel_doc_nationality" class="form-control" style="background-color:white;" value="" />
+                        <div id="div_travel_doc_passport" v-if="form.travel_doc === 'Passport'"> Nationality &nbsp;&nbsp; 
+                            <input id="travel_doc_nationality" type="text" v-model="form.travel_doc_nationality" class="form-control" style="background-color:white;" value="" />
                         </div>
                     </div>
             </div>
@@ -381,7 +381,13 @@
                 </div>
                 
                 <input class="btn btn-primary mb-3" type="button" id="btn_add_flight" @click="addFlightDetail" value="+ Add Another Flight" v-if="form.flying_type === 'multicity'">
-                 <!--Member info starts-->
+                <div class="row">
+                <div class="col-md-12">
+                    <label for="member_code" class="form-label-outside">Additonal Notes From Customer</label>
+                    <textarea id="additional_notes" v-model="form.additional_notes" class="form-control" rows="3" placeholder="Enter any additional notes or requests here..."></textarea>
+                    </div>    
+                </div> 
+                <!--Member info starts-->
                 <div class="row">
                     <div class="mt-3 col-md-12 form-group">
                         <h1 class="py-3 text-xl font-semibold">Contact Details:</h1>
@@ -403,7 +409,7 @@
                     </div>
                     <div class="form-group col-md-2">
                         <label for="contact_no" class="form-label-outside">Contact No *</label>
-                        <input id="contact_no_twoway" type="tel" v-model="form.contact_no" class="form-control" placeholder="Contact No" onfocus="this.placeholder ='000-000-0000' " required />
+                        <input @input="formatPhone" id="contact_no_twoway" type="tel" v-model="form.contact_no" class="form-control" placeholder="Contact No" onfocus="this.placeholder ='000-000-0000' " required />
                         <p style="color:red;"></p>
                     </div>
                     <div class="form-group col-md-3">
@@ -683,6 +689,7 @@ export default {
                 gender : '',
                 agent_name : '',
                 country_id : '',
+                additional_notes: '',
                 payment_mode: '',
                 customer_contacted: '',
                 quote_submitted: '',
@@ -751,6 +758,25 @@ export default {
                 }
             }
         },
+      formatPhone(e) {
+        // Get only digits
+        const input = e.target.value.replace(/\D/g, '').substring(0, 10)
+        this.cleanPhone = input
+        
+        // Format with mask
+        if (input.length > 0) {
+          let formatted = input.substring(0, 3)
+          if (input.length > 3) {
+            formatted += '-' + input.substring(3, 6)
+          }
+          if (input.length > 6) {
+            formatted += '-' + input.substring(6, 10)
+          }
+          this.form.contact_no = formatted
+        } else {
+          this.form.contact_no = ''
+        }
+      },
         formatDate(date) {
             const options = { year: 'numeric', month: 'long', day: 'numeric' };
             return new Date(date).toLocaleDateString('en-US', options);
@@ -864,7 +890,27 @@ export default {
                 this.loading = false;
             }
         }, 
-        
+        async handelDelete(event, id) {
+            this.$confirm.require({
+                target: event.currentTarget,
+                message: 'Do you want to delete this record?',
+                icon: 'pi pi-info-circle',
+                rejectProps: {
+                    label: 'Cancel',
+                    severity: 'secondary',
+                    outlined: true
+                },
+                acceptProps: {
+                    label: 'Delete',
+                    severity: 'danger'
+                },
+                accept: () => {
+                    console.log(id);
+                    this.deleteRecord(id); // Proceed with the deletion
+
+                },
+            });
+        },
         async deleteRecord(id) {
                 try {
                     this.isSubmitting = true;
@@ -953,8 +999,8 @@ export default {
       async getAgents() {
             try {
                 this.loading = true;
-                const response = await axios.get('/api/users');
-                this.agents = response.data.users.data.map(agent => ({
+                const response = await axios.get('/api/agents');
+                this.agents = response.data.agents.map(agent => ({
                         value: agent.id,
                         label:  agent.first_name +' '+ agent.last_name,
                     }));
@@ -1019,6 +1065,7 @@ export default {
                     ticket_issued: inquiry.ticket_issued === 1 ? '1' : '0',
                     insurance_purchased: inquiry.insurance_purchased === 1 ? '1' : '0',
                     booking_status: inquiry.booking_status,
+                    additional_notes: inquiry.additional_notes || '',
                     
 
 

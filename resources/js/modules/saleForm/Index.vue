@@ -1333,6 +1333,43 @@ export default {
             
             return `${year}-${month}-${day}`;
         },
+        async handelDelete(event, id) {
+            this.$confirm.require({
+                target: event.currentTarget,
+                message: 'Do you want to delete this record?',
+                icon: 'pi pi-info-circle',
+                rejectProps: {
+                    label: 'Cancel',
+                    severity: 'secondary',
+                    outlined: true
+                },
+                acceptProps: {
+                    label: 'Delete',
+                    severity: 'danger'
+                },
+                accept: () => {
+                    console.log(id);
+                    this.deleteRecord(id); // Proceed with the deletion
+
+                },
+            });
+        },
+        
+        async deleteRecord(id) {
+                try {
+                    this.isSubmitting = true;
+                    const response = await axios.delete(`/api/sale-form/${id}`);
+                    this.$refs.toast.add({ severity: 'success', summary: 'Success', detail: 'Record deleted successfully', life: 3000 });
+                    
+                } catch (error) {
+                    this.$refs.toast.add({ severity: 'error', summary: 'Error', detail: 'Error deleting record', life: 3000 });
+                    
+                } finally {
+                    this.isSubmitting = false; // hide loader
+                    this.loading = false;
+                    this.getInquiries();
+                }
+        },
         async getRecord(id) {
             try {
                 this.loading = true;

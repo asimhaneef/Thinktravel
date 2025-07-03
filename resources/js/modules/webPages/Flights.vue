@@ -52,7 +52,7 @@
                                   <select :id="'flying_from_' + index" v-model="detail.flying_from" class="form-control" style="background-color:white;" required>
                                     <option value="">--Select--</option>
                                     <option v-for="airport in airports" :key="airport.id" :value="airport.id">
-                                      {{ airport.iata }}  {{ airport.airport_name }} {{ airport.city.city_name }} {{ airport.city.province.country.country }}
+                                      {{ airport.iata }}  {{ airport.airport_name }} {{ airport.city?.city_name }} {{ airport.city?.province?.country?.country }}
                                     </option>
                                   </select>
                                 </div>
@@ -61,7 +61,7 @@
                                   <select id="flying_to" v-model="detail.flying_to" class="form-control" style="background-color:white;" required>
                                     <option value="">--Select--</option>
                                     <option v-for="airport in airports" :key="airport.id" :value="airport.id">
-                                        {{ airport.iata }}  {{ airport.airport_name }} {{ airport.city.city_name }} {{ airport.city.province.country.country }}
+                                        {{ airport.iata }}  {{ airport.airport_name }} {{ airport.city?.city_name }} {{ airport.city?.province?.country?.country }}
                                     </option>
                                   </select>
                                 </div>
@@ -173,15 +173,15 @@
                               <div class="form-group col-md-4"> Travel Document for US / International: <br>
                               </div>
                               <div class="form-group col-md-4">
-                                <input id="twoway_travel_document" type="radio" value="Passport" v-model="form.travel_doc" />
+                                <input id="travel_document" type="radio" value="Passport" v-model="form.travel_doc" />
                                 <span style="">Passport</span> &nbsp;&nbsp; 
-                                <input id="twoway_travel_document" type="radio" value="Other" v-model="form.travel_doc" />
+                                <input id="travel_document" type="radio" value="Other" v-model="form.travel_doc" />
                                 <span style="">Other</span> &nbsp;&nbsp; 
-                                <div id="div_twoway_travel_doc_other" v-if="form.travel_doc === 'Other'"> Please Mention 
-                                <input id="twoway_travel_doc_other" type="text" v-model="form.twoway_travel_doc_other" class="form-control" style="background-color:white;" value="" />
+                                <div id="div_travel_doc_other" v-if="form.travel_doc === 'Other'"> Please Mention 
+                                <input id="travel_doc_other" type="text" v-model="form.travel_doc_other" class="form-control" style="background-color:white;" value="" />
                                 </div>
-                                <div id="div_twoway_travel_doc_passport" v-if="form.travel_doc === 'Passport'"> Nationality &nbsp;&nbsp; 
-                                  <input id="twoway_travel_doc_nationality" type="text" v-model="form.twoway_travel_doc_nationality" class="form-control" style="background-color:white;" value="" />
+                                <div id="div_travel_doc_passport" v-if="form.travel_doc === 'Passport'"> Nationality &nbsp;&nbsp; 
+                                  <input id="travel_doc_nationality" type="text" v-model="form.travel_doc_nationality" class="form-control" style="background-color:white;" value="" />
                                 </div>
                               </div>
                             </div>
@@ -209,8 +209,12 @@
                                 </div>
                                 <div class="form-group col-md-6">
                                   <label for="contact_no" class="form-label-outside text-black">Contact No *</label>
-                                  <input id="contact_no_twoway" type="tel" v-model="form.contact_no" class="form-control" style="background-color:white;" onfocus="this.placeholder ='' " value="" required />
-                                  <p style="color:red;"></p>
+                                  <input  
+                                    @input="formatPhone" 
+                                    id="contact_no_twoway" 
+                                    type="tel" v-model="form.contact_no" class="form-control" style="background-color:white;" onfocus="this.placeholder ='' " value="" required 
+                                    maxlength="12"/>
+                                  <p style="color:red;" v-if="form.contact_no.length > 12">Phone number must be 10 digits</p>
                                 </div>
                               </div>
                               <div class="row">
@@ -311,7 +315,7 @@
 <!-- Toast Container -->
     <div class="toast-container">
       <div v-for="(toast, index) in toasts" :key="index" :class="['toast-message', `toast-${toast.type}`]">
-        <span class="toast-icon">⚠️</span> <!-- Replace with your icon -->
+        <span class="toast-icon"><span class="icon icon-xxs mdi mdi-check"></span></span> <!-- Replace with your icon -->
         <div style="width:100%;">
           <strong>{{ toast.summary }}</strong>
           <p style="margin-top:0;">{{ toast.detail }}</p>
@@ -378,6 +382,25 @@ export default {
       clearForm(){
         this.form.reset();
       },
+      formatPhone(e) {
+        // Get only digits
+        const input = e.target.value.replace(/\D/g, '').substring(0, 10)
+        this.cleanPhone = input
+        
+        // Format with mask
+        if (input.length > 0) {
+          let formatted = input.substring(0, 3)
+          if (input.length > 3) {
+            formatted += '-' + input.substring(3, 6)
+          }
+          if (input.length > 6) {
+            formatted += '-' + input.substring(6, 10)
+          }
+          this.form.contact_no = formatted
+        } else {
+          this.form.contact_no = ''
+        }
+      },
       showToast(type, summary, detail) {
         const toast = { type, summary, detail };
         this.toasts.push(toast);
@@ -401,8 +424,8 @@ export default {
             });
         },
       show_travel_docs_opts($field){
-        div_twoway_travel_doc_other.style.display = $field.value == 'other' ? 'block' : 'none';
-        div_twoway_travel_doc_passport.style.display = $field.value == 'passport' ? 'block' : 'none';
+        div_travel_doc_other.style.display = $field.value == 'other' ? 'block' : 'none';
+        div_travel_doc_passport.style.display = $field.value == 'passport' ? 'block' : 'none';
       },
       async createRecord() {
         try {
@@ -411,7 +434,7 @@ export default {
                 // handle success, e.g., show a success message or redirect
                 // this.$toast.add({ severity: 'success', summary: 'Success', detail: 'Inquiry added successfully', life: 3000 });
                 this.showToast('success','Success','Inquiry added successfully');
-                // this.form.reset(); // Clear the form data
+                this.form.reset(); // Clear the form data
         } catch(error) {
               console.error('Error creating inquiry:', error);
               if (error.response.status != 422) {

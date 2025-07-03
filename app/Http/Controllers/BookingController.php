@@ -541,13 +541,14 @@ class BookingController extends Controller implements HasMiddleware
                     'contact_by_email'=> $request->contact_by_email ?? 0,             
                     
                     'customer_identification'=> $request->customer_identification ?? null,
-                    'userid' => $request->agent_name ?? null,
+                    'agent_name' => $request->agent_name ?? null,
+                    'userid' => auth()->id(),
                 ]);
                 if(!$booking){
                     throw new \Exception('Booking not created.');                    
                 }
-                if(isset($request->booking_flight)){
-                    foreach ($request->booking_flight as $detail) {
+                if(isset($request->flight_details)){
+                    foreach ($request->flight_details as $detail) {
                     //check for flight dates
                     if(isset($detail['departing_date']) && isset($detail['returning_date']) && $detail['departing_date'] > $detail['returning_date']){
                         throw new \Exception('Start Date should be smaller than End Date.');
