@@ -55,7 +55,7 @@
                     placeholder="Search by First Name" class="form-control" />
             </template>
             <template #body="slotProps">
-                {{ slotProps.data.member?.first_name }}
+                {{ slotProps.data.first_name }}
             </template>
         </Column>
         <Column field="last_name" header="Last Name" sortable :showFilterMatchModes="false">
@@ -64,7 +64,7 @@
                     placeholder="Search by Last Name" class="form-control" />
             </template>  
             <template #body="slotProps">
-                {{ slotProps.data.member?.last_name }}
+                {{ slotProps.data.last_name }}
             </template>
         </Column>
         <Column field="phone_no" header="Phone" sortable :showFilterMatchModes="false">
@@ -73,7 +73,7 @@
                     placeholder="Search by Phone" class="form-control" />
             </template> 
             <template #body="slotProps">
-                {{ slotProps.data.member?.phone_no }}
+                {{ slotProps.data.phone_no }}
             </template>      
         </Column>
         <Column field="email" header="Email" sortable :showFilterMatchModes="false">
@@ -82,10 +82,10 @@
                     placeholder="Search by Email" class="form-control" />
             </template>   
             <template #body="slotProps">
-                {{ slotProps.data.member?.email }}
+                {{ slotProps.data.email }}
             </template>
         </Column>
-        <Column field="cruises_origin" header="Origin" sortable :showFilterMatchModes="false">
+        <Column field="cruises_origin.airport_name" header="Origin" sortable :showFilterMatchModes="false">
             <template #filter="{ filterModel }">
                 <InputText v-model="filterModel.value" type="text"
                     placeholder="Search by Origin" class="form-control" />
@@ -94,7 +94,7 @@
                 {{ slotProps.data.cruises_origin?.airport_name }}
             </template>
         </Column>
-        <Column field="cruises_destination" header="Destination" sortable :showFilterMatchModes="false">
+        <Column field="cruises_destination.region" header="Destination" sortable :showFilterMatchModes="false">
             <template #filter="{ filterModel }">
                 <InputText v-model="filterModel.value" type="text"
                     placeholder="Search by Destination" class="form-control" />
@@ -107,6 +107,15 @@
             <template #filter="{ filterModel }">
                 <InputText v-model="filterModel.value" type="text"
                     placeholder="Search by Status" class="form-control" />
+            </template>
+        </Column>
+        <Column field="agent.first_name" header="Agent" sortable :showFilterMatchModes="false">
+            <template #filter="{ filterModel }">
+                <InputText v-model="filterModel.value" type="text"
+                    placeholder="Search by Agent" class="form-control" />
+            </template>
+            <template #body="slotProps">
+                {{ slotProps.data.agent?.first_name }} {{ slotProps.data.agent?.last_name }}
             </template>
         </Column>
         <Column field="id" header="Sale Form" >
@@ -124,7 +133,7 @@
                         <i class="pi pi-file-edit"></i>
                     </a>
                     <a href="javascript:void(0)"
-                        @click="handelDelete($event, slotProps.data.id)" class="m-2 text-danger"
+                        @click="confirmDeleteCruise($slotProps.data.id)" class="m-2 text-danger"
                         title="Delete">
                         <i class="pi pi-trash"></i>
                     </a>
@@ -292,7 +301,7 @@
                     </div>
                     <div class="form-group col-md-3">
                         <label for="contact_no" class="form-label-outside">Contact No *</label>
-                        <input id="contact_no_twoway" type="tel" v-model="form.contact_no" class="form-control" placeholder="Contact No" onfocus="this.placeholder ='000-000-0000' " required />
+                        <input @input="formatPhone" id="contact_no_twoway" type="tel" v-model="form.contact_no" class="form-control" placeholder="Contact No" onfocus="this.placeholder ='000-000-0000' " required />
                         <p style="color:red;"></p>
                     </div>
                     <div class="form-group col-md-3">
@@ -515,7 +524,6 @@
         </form>
     </Sidebar>
     <Toast ref="toast" />
-    <confirmDialog />
 </template>
 
 <script>
@@ -603,17 +611,17 @@ export default {
                 ],
             }),
             filters: {
-                created_at: { value: null },
                 inquiry_code: { value: null },
+                created_at: { value: null },
                 booking_ref: { value: null },
                 first_name: { value: null },
                 last_name: { value: null },
                 phone_no: { value: null },
                 email: { value: null },
-                cruising_origin: { value: null },
-                cruising_location: { value: null },
+                'cruises_origin.airport_name': { value: null },
+                'cruises_destination.region': { value: null },
                 booking_status: { value: null },
-                agent: { value: null },
+                'agent.first_name': { value: null },
             },
             rows: 10, // Number of records per page
             totalRecords: 0, // Total number of records
@@ -665,10 +673,31 @@ export default {
     },
     methods: {
         formatDate(date) {
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            return new Date(date).toLocaleDateString('en-US', options);
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         },
+        formatPhone(e) {
+        // Get only digits
+        const input = e.target.value.replace(/\D/g, '').substring(0, 10)
+        this.cleanPhone = input
         
+        // Format with mask
+        if (input.length > 0) {
+          let formatted = input.substring(0, 3)
+          if (input.length > 3) {
+            formatted += '-' + input.substring(3, 6)
+          }
+          if (input.length > 6) {
+            formatted += '-' + input.substring(6, 10)
+          }
+          this.form.contact_no = formatted
+        } else {
+          this.form.contact_no = ''
+        }
+      },
         async checkAuth() {
             try {
                 // Make a request to a protected endpoint to check authentication
@@ -824,25 +853,17 @@ export default {
                 this.loading = false;
             }
         },
-        async handelDelete(event, id) {
+        confirmDeleteCruise(id) {
             this.$confirm.require({
-                target: event.currentTarget,
-                message: 'Do you want to delete this record?',
-                icon: 'pi pi-info-circle',
-                rejectProps: {
-                    label: 'Cancel',
-                    severity: 'secondary',
-                    outlined: true
-                },
-                acceptProps: {
-                    label: 'Delete',
-                    severity: 'danger'
-                },
+                message: 'Are you sure you want to delete this record?',
+                header: 'Confirmation',
+                icon: 'pi pi-exclamation-triangle',
                 accept: () => {
-                    console.log(id);
-                    this.deleteRecord(id); // Proceed with the deletion
-
+                    this.deleteRecord(id);
                 },
+                reject: () => {
+                    // Do nothing on reject
+                }
             });
         },
         async deleteRecord(id) {
@@ -924,7 +945,7 @@ export default {
 
                     cruising_origin: inquiry.cruising_origin,
                     cruising_location: inquiry.cruising_location,
-                    cruising_month: inquiry.cruising_month,
+                    cruising_month: inquiry.cruising_month || '',
 
                     customer_contacted: inquiry.customer_contacted === 1 ? '1' : '0',
                     quote_submitted: inquiry.quote_submitted === 1 ? '1' : '0',

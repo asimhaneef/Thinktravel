@@ -179,8 +179,10 @@ class UserController extends Controller implements HasMiddleware
             $query->where('name', 'AGENT'); // Assuming the role name is stored in a 'name' column
         })->get();
 
+        $current_user_id = auth()->id() ?? null;
         // Include roles in the query
-        return response()->json(['agents' => $agent], 200); 
+        return response()->json(['agents' => $agent,
+            'current_user_id' => $current_user_id,], 200); 
     }
     public function getSuppliers(){
         $supplier = User::whereHas('roles', function ($query) {

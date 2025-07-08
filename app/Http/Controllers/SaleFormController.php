@@ -41,10 +41,30 @@ class SaleFormController extends Controller implements HasMiddleware
         if ($request->has('filters')) {
             $filters = json_decode($request->filters, true);
             foreach ($filters as $filter => $value) {
-                if (!empty($value['value'])) {
-                    $query->where($filter, 'like', '%' . $value['value'] . '%');
+                if($filter == 'agent.username') {
+                    $query->whereHas('agent', function($q) use ($value) {
+                        if (!empty($value['value'])) {
+                            $q->where('username', 'like', '%' . $value['value'] . '%');
+                        }
+                    });
+                } elseif ($filter == 'supplier.username') {
+                    $query->whereHas('supplier', function($q) use ($value) {
+                        if (!empty($value['value'])) {
+                            $q->where('username', 'like', '%' . $value['value'] . '%');
+                        }
+                    });
+                } elseif ($filter == 'secondaryAgent.username') {
+                    $query->whereHas('secondaryAgent', function($q) use ($value) {
+                        if (!empty($value['value'])) {
+                            $q->where('username', 'like', '%' . $value['value'] . '%');
+                        }
+                    });
+                } else{
+                    // For other string fields
+                    if (!empty($value['value'])) {
+                        $query->where($filter, 'like', '%' . $value['value'] . '%');
+                    }
                 }
-            }
         }
 
         // Sorting

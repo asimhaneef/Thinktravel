@@ -20,21 +20,21 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="p-0 card-body">
-                            <div class="p-2">
+                            <!-- <div class="p-2">
                                 <input type="text" v-model="filters['global'].value" placeholder="Search..." class="form-control">
-                            </div>
+                            </div> -->
                             <DataTable v-model:filters="filters" size="small" :value="permissions" showGridlines
                                 :rows="rows" :totalRecords="totalRecords" dataKey="id" filterDisplay="menu" :loading="loading"
                                 :globalFilterFields="['name', 'guard_name']"
                                 @update:filters="onFilter" @sort="onSort" @page="onPage">
 
-                                <Column field="name" header="Permission" style="min-width: 12rem" sortable>
+                                <Column field="name" header="Permission" style="min-width: 12rem" sortable :showFilterMatchModes="false">
                                     <template #filter="{ filterModel }">
                                         <InputText v-model="filterModel.value" placeholder="Search by Permission" class="form-control" />
                                     </template>
                                 </Column>
 
-                                <Column field="guard_name" header="Guard" style="min-width: 12rem" sortable>
+                                <Column field="guard_name" header="Guard" style="min-width: 12rem" sortable :showFilterMatchModes="false">
                                     <template #filter="{ filterModel }">
                                         <InputText v-model="filterModel.value" placeholder="Search by Guard" class="form-control" />
                                     </template>
@@ -121,7 +121,11 @@ export default {
             visibleRight: false,
             editMode: false,
             loading: false,
-            filters: { 'global': { value: null, matchMode: 'contains' } },
+            filters: { 
+                'global': { value: null, matchMode: 'contains' },
+                'name': { value: null, matchMode: 'contains' },
+                'guard_name': { value: null, matchMode: 'contains' }
+            },
             totalRecords: 0,
             page: 1,
             rows: 20,

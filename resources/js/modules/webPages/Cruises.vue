@@ -44,7 +44,7 @@
                                   <select id="cruising_origin" v-model="form.cruising_origin" class="form-control" style="background-color:white;" required>
                                     <option value="">--Select--</option>
                                     <option v-for="airport in airports" :key="airport.id" :value="airport.id">
-                                      {{ airport.iata }}  {{ airport.airport_name }} {{ airport.city.city_name }} {{ airport.city.province.country.country }}
+                                      {{ airport.iata }}  {{ airport.airport_name }} {{ airport.city?.city_name }} {{ airport.city?.province?.country?.country }}
                                     </option>
                                   </select>
                                 </div>
@@ -152,7 +152,7 @@
                                 </div>
                                 <div class="form-group col-md-6">
                                   <label for="contact_no" class="form-label-outside text-black">Contact No *</label>
-                                  <input id="contact_no_twoway" type="tel" v-model="form.contact_no" class="form-control" style="background-color:white;" onfocus="this.placeholder ='' " value="" required />
+                                  <input @input="formatPhone" id="contact_no_twoway" type="tel" v-model="form.contact_no" class="form-control" style="background-color:white;" onfocus="this.placeholder ='' " value="" required />
                                   <p style="color:red;"></p>
                                 </div>
                               </div>
@@ -184,7 +184,7 @@
                                        style="background-color:white;" required>                                      
                                     <option value="">Select Country</option>
                                     <option v-for="country in countries" :key="country.id" :value="country.id">
-                                        {{ country.country }}
+                                        {{ country?.country }}
                                     </option>
                                   </select>
                                 </div>
@@ -254,7 +254,7 @@
     <!-- Toast Container -->
     <div class="toast-container">
       <div v-for="(toast, index) in toasts" :key="index" :class="['toast-message', `toast-${toast.type}`]">
-        <span class="toast-icon">⚠️</span> <!-- Replace with your icon -->
+        <span class="toast-icon"><span class="icon icon-xxs mdi mdi-check"></span></span> <!-- Replace with your icon -->
         <div style="width:100%;">
           <strong>{{ toast.summary }}</strong>
           <p style="margin-top:0;">{{ toast.detail }}</p>
@@ -337,6 +337,25 @@ import axios from 'axios';
     methods: {
       clearForm(){
         this.form.reset();
+      },
+      formatPhone(e) {
+        // Get only digits
+        const input = e.target.value.replace(/\D/g, '').substring(0, 10)
+        this.cleanPhone = input
+        
+        // Format with mask
+        if (input.length > 0) {
+          let formatted = input.substring(0, 3)
+          if (input.length > 3) {
+            formatted += '-' + input.substring(3, 6)
+          }
+          if (input.length > 6) {
+            formatted += '-' + input.substring(6, 10)
+          }
+          this.form.contact_no = formatted
+        } else {
+          this.form.contact_no = ''
+        }
       },
       showToast(type, summary, detail) {
         const toast = { type, summary, detail };

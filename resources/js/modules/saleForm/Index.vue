@@ -61,16 +61,16 @@
                     placeholder="Search by Transaction Date" class="form-control" />
             </template>
         </Column>
-        <Column field="agent" header="Agent Name" sortable :showFilterMatchModes="false">
+        <Column field="agent.username" header="Agent Name" sortable :showFilterMatchModes="false">
             <template #filter="{ filterModel }">
                 <InputText v-model="filterModel.value" type="text"
                     placeholder="Search by Agent" class="form-control" />
             </template>
             <template #body="slotProps">
-                {{ slotProps.data.agent.username }}
+                {{ slotProps.data.agent?.username }}
             </template>
         </Column>
-        <Column field="supplier" header="Supplier" sortable :showFilterMatchModes="false">
+        <Column field="supplier.username" header="Supplier" sortable :showFilterMatchModes="false">
             <template #filter="{ filterModel }">
                 <InputText v-model="filterModel.value" type="text"
                     placeholder="Search by Supplier" class="form-control" />
@@ -163,7 +163,7 @@
                 <div class="form-group col-md-4">
                     <div class="row">
                         <div class="form-group col-md-6">
-                            <label for="inquiry_code" class="form-label-outside">Entry Date</label>
+                            <label for="entry_date" class="form-label-outside">Entry Date</label>
                             <input id="entry_date" type="date" v-model="form.entry_date" class="form-control entry_date"   />                            
                         </div>
                         <div class="form-group col-md-6">
@@ -233,7 +233,7 @@
                         </div>
                         <div class="form-group col-md-6">
                             <label for="gst" class="form-label-outside"> GST</label>
-                            <input id="gst" type="number" v-model="form.gst" class="form-control" placeholder="GST"  />
+                            <input id="gst" type="number" v-model="form.gst"  @input="handleGSTInput" class="form-control" placeholder="GST"  />
                         </div>
                         <div class="form-group col-md-6">
                             <label for="margin_ofgst" class="form-label-outside"> Margin Net of GST</label>
@@ -367,7 +367,8 @@
                                 placeholder="Select Agent"
                                 filter
                                 showClear
-                                class="w-100"                                    
+                                class="w-100"  
+                                id="agent"                                  
                             />
                         </div>
                         <div class="form-group col-md-6">
@@ -380,7 +381,8 @@
                                 placeholder="Select Supplier"
                                 filter
                                 showClear
-                                class="w-100"                                    
+                                class="w-100" 
+                                id="supplier"                                   
                             />
                         </div>
                     </div>
@@ -583,14 +585,16 @@ export default {
                 inquiry_no: { value: null },
                 departure_date: { value: null },
                 invoice_date: { value: null },
-                agent: { value: null },
-                supplier: { value: null },
+                'agent.username': { value: null },
+                'supplier.username': { value: null },
                 last_name: { value: null },
                 total_sale: { value: null },
                 total_margin: { value: null },
                 cash: { value: null },
                 balance: { value: null }
             },
+            recalculating: false,
+            manuallySetGST: false,
             rows: 10, // Number of records per page
             totalRecords: 0, // Total number of records
             sortField: null,
@@ -618,7 +622,13 @@ export default {
         'form.company_visa': 'recalculateValues',
         'form.company_master': 'recalculateValues',
         'form.other_supplier': 'recalculateValues',
-        'form.cheque': 'recalculateValues',   
+        'form.cheque': 'recalculateValues', 
+        'form.gst'(newVal, oldVal) {
+        // Only recalculate if the change didn't come from recalculateValues itself
+            if (newVal !== oldVal && !this.recalculating) {
+                this.recalculateValues();
+            }
+        }, 
     },
     methods: {
         async checkAuth() {
@@ -632,7 +642,10 @@ export default {
                 }
             }
         },
-        
+        handleGSTInput() {
+            this.manuallySetGST = true;
+            // You might want to add additional logic here if needed
+        },
         async getRecords() {
             try {
                 this.loading = true;
@@ -687,6 +700,7 @@ export default {
             }
         },
         recalculateValues() {
+            this.recalculating = true;
             // Calculate total sale
             const grossSupplier = parseFloat(this.form.gross_supplier) || 0;
             const markup = parseFloat(this.form.markup) || 0;
@@ -700,13 +714,16 @@ export default {
             this.form.net_cost = (grossSupplier - commission).toFixed(2);
             
             // Calculate GST if applicable
-            const saleType = this.form.sale_type;
-            let gst = 0;
-            if (saleType === "air_usa" || saleType === "vacation" || saleType === "fee_only") {
-                gst = (this.form.total_margin / 1.05) * 0.05;
+            if (!this.manuallySetGST) {
+                const saleType = this.form.sale_type;
+                let gst = 0;
+                if (saleType === "air_usa" || saleType === "vacation" || saleType === "fee_only") {
+                    gst = (this.form.total_margin / 1.05) * 0.05;
+                }
+                this.form.gst = gst.toFixed(2);
             }
-            this.form.gst = gst.toFixed(2);
-            this.form.margin_ofgst = (this.form.total_margin - gst).toFixed(2);
+            this.recalculating = false;
+            this.form.margin_ofgst = (this.form.total_margin - this.form.gst).toFixed(2);
             
             // Calculate total received from customer
             const customerMc = parseFloat(this.form.customer_mc) || 0;
@@ -845,8 +862,8 @@ export default {
                     entry_date: saleForm.entry_date,
                     pnr: saleForm.pnr,
                     sale_type: saleForm.sale_type,
-                    agent: saleForm.agent.id,
-                    supplier: saleForm.supplier.id,
+                    agent: saleForm.agent?.id,
+                    supplier: saleForm.supplier?.id,
                     last_name: saleForm.last_name,
                     first_name: saleForm.first_name,
                     no_of_pax: saleForm.no_of_pax,
@@ -872,7 +889,7 @@ export default {
                     customer_mc: saleForm.customer_mc,
                     invoice_date: saleForm.invoice_date,
                     inquiry_no: saleForm.inquiry_no,
-                    secondary_agent: saleForm.secondary_agent.id,
+                    secondary_agent: saleForm.secondary_agent?.id,
                     secondary_agent_share: saleForm.secondary_agent_share,
                     remarks_supplier: saleForm.remarks_supplier,
                     other_supplier: saleForm.other_supplier,
@@ -894,8 +911,8 @@ export default {
                     cheque: saleForm.cheque,
                     total_due: saleForm.total_due,
                     
-                    trvl_contact_email: saleForm.customer_details.member.email,
-                    trvl_contact_no: saleForm.customer_details.member.phone_no,
+                    trvl_contact_email: saleForm.customer_details?.member?.email,
+                    trvl_contact_no: saleForm.customer_details?.member?.phone_no,
                 });
                 
                 
@@ -1388,11 +1405,11 @@ export default {
                     inquiry_no: response.data.inquiry_code,
                     invoice_date: formattedDate,
                     agent: response.data.agent.id,
-                    last_name: response.data.member.last_name,
-                    first_name: response.data.member.first_name,
+                    last_name: response.data.last_name,
+                    first_name: response.data.first_name,
                     no_of_pax: response.data.children + response.data.adults + response.data.infants,
-                    trvl_contact_email: response.data.member.email,
-                    trvl_contact_no: response.data.member.phone_no,
+                    trvl_contact_email: response.data.email,
+                    trvl_contact_no: response.data.phone_no,
                     return_date: sortedFlights.length > 0 
                         ? this.formatDate(sortedFlights[sortedFlights.length - 1].returning_date) 
                         : null,

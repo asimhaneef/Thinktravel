@@ -56,7 +56,7 @@
                     placeholder="Search by First Name" class="form-control" />
             </template>
             <template #body="slotProps">
-                {{ slotProps.data.member?.first_name }}
+                {{ slotProps.data.first_name }}
             </template>
         </Column>
         <Column field="last_name" header="Last Name" sortable :showFilterMatchModes="false">
@@ -65,7 +65,7 @@
                     placeholder="Search by Last Name" class="form-control" />
             </template>
             <template #body="slotProps">
-                {{ slotProps.data.member?.last_name }}
+                {{ slotProps.data.last_name }}
             </template>
         </Column>
         <Column field="phone_no" header="Phone" sortable :showFilterMatchModes="false">
@@ -74,7 +74,7 @@
                     placeholder="Search by Phone" class="form-control" />
             </template>
             <template #body="slotProps">
-                {{ slotProps.data.member?.phone_no }}
+                {{ slotProps.data.phone_no }}
             </template>
         </Column>
         <Column field="email" header="Email" sortable :showFilterMatchModes="false">
@@ -83,10 +83,10 @@
                     placeholder="Search by Email" class="form-control" />
             </template>
             <template #body="slotProps">
-                {{ slotProps.data.member?.email }}
+                {{ slotProps.data.email }}
             </template>
         </Column>
-        <Column field="vacation_origin" header="Origin" sortable :showFilterMatchModes="false">
+        <Column field="vacation_origin.airport_name" header="Origin" sortable :showFilterMatchModes="false">
             <template #filter="{ filterModel }">
                 <InputText v-model="filterModel.value" type="text"
                     placeholder="Search by Origin" class="form-control" />
@@ -95,13 +95,13 @@
                 {{ slotProps.data.vacation_origin?.airport_name }}
             </template>
         </Column>
-        <Column field="vacation_destination" header="Destination" sortable :showFilterMatchModes="false">
+        <Column field="vacation_destination.country" header="Destination" sortable :showFilterMatchModes="false">
             <template #filter="{ filterModel }">
                 <InputText v-model="filterModel.value" type="text"
                     placeholder="Search by Destination" class="form-control" />
             </template>
             <template #body="slotProps">
-                {{ slotProps.data.vacation_destination.country }}
+                {{ slotProps.data.vacation_destination?.country }}
             </template>
         </Column>
         <Column field="booking_status" header="Status" sortable :showFilterMatchModes="false">
@@ -113,18 +113,18 @@
                 {{ slotProps.data.booking_status }}
             </template>
         </Column>
-        <Column field="id" header="Sale Form" >
-            <template #body="slotProps">
-                <router-link :to="`/sale-form-add/${slotProps.data.id}`">Add</router-link>
-            </template>
-        </Column>
-        <Column field="user" header="Agent" sortable :showFilterMatchModes="false">
+        <Column field="agent.first_name" header="Agent" sortable :showFilterMatchModes="false">
             <template #filter="{ filterModel }">
                 <InputText v-model="filterModel.value" type="text"
                     placeholder="Search by Agent" class="form-control" />
             </template>
             <template #body="slotProps">
-                {{ slotProps.data.user?.first_name }} {{ slotProps.data.user?.last_name }}
+                {{ slotProps.data.agent?.first_name }} {{ slotProps.data.agent?.last_name }}
+            </template>
+        </Column>
+        <Column field="id" header="Sale Form" >
+            <template #body="slotProps">
+                <router-link :to="`/sale-form-add/${slotProps.data.id}`">Add</router-link>
             </template>
         </Column>
         <!-- Action Column -->
@@ -136,7 +136,7 @@
                         <i class="pi pi-file-edit"></i>
                     </a>
                     <a href="javascript:void(0)"
-                        @click="handelDelete($event, slotProps.data.id)" class="m-2 text-danger"
+                        @click="confirmDeleteVocation(slotProps.data.id)" class="m-2 text-danger"
                         title="Delete">
                         <i class="pi pi-trash"></i>
                     </a>
@@ -347,7 +347,7 @@
                     </div>
                     <div class="form-group col-md-3">
                         <label for="contact_no" class="form-label-outside">Contact No *</label>
-                        <input id="contact_no_twoway" type="tel" v-model="form.contact_no" class="form-control" placeholder="Contact No" onfocus="this.placeholder ='000-000-0000' " required />
+                        <input @input="formatPhone" id="contact_no_twoway" type="tel" v-model="form.contact_no" class="form-control" placeholder="Contact No" onfocus="this.placeholder ='000-000-0000' " required />
                         <p style="color:red;"></p>
                     </div>
                     <div class="form-group col-md-3">
@@ -570,7 +570,6 @@
         </form>
     </Sidebar>
     <Toast ref="toast" />
-    <confirmDialog />
 </template>
 
 <script>
@@ -660,15 +659,15 @@ export default {
             filters: {
                 inquiry_code: { value: null },
                 created_at: { value: null },
-                first_name: { value: null },
-                last_name: { value: null },
-                phone_no    : { value: null },
-                email: { value: null },
                 booking_ref: { value: null },
-                vacation_origin: { value: null },
-                vacation_destination: { value: null },
+                'member.first_name': { value: null },
+                'member.last_name': { value: null },
+                'member.phone_no': { value: null },
+                'member.email': { value: null },
+                'vacation_origin.airport_name': { value: null },
+                'vacation_destination.country': { value: null },
                 booking_status: { value: null },
-
+                'agent.name': { value: null },
             },
             previous_file: null,
             previous_file_path: null,
@@ -684,9 +683,31 @@ export default {
     },
     methods: {
         formatDate(date) {
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            return new Date(date).toLocaleDateString('en-US', options);
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         },
+        formatPhone(e) {
+        // Get only digits
+        const input = e.target.value.replace(/\D/g, '').substring(0, 10)
+        this.cleanPhone = input
+        
+        // Format with mask
+        if (input.length > 0) {
+          let formatted = input.substring(0, 3)
+          if (input.length > 3) {
+            formatted += '-' + input.substring(3, 6)
+          }
+          if (input.length > 6) {
+            formatted += '-' + input.substring(6, 10)
+          }
+          this.form.contact_no = formatted
+        } else {
+          this.form.contact_no = ''
+        }
+      },
         async checkAuth() {
             try {
                 // Make a request to a protected endpoint to check authentication
@@ -781,27 +802,6 @@ export default {
                 this.loading = false;
             }
         },
-        async handelDelete(event, id) {
-            this.$confirm.require({
-                target: event.currentTarget,
-                message: 'Do you want to delete this record?',
-                icon: 'pi pi-info-circle',
-                rejectProps: {
-                    label: 'Cancel',
-                    severity: 'secondary',
-                    outlined: true
-                },
-                acceptProps: {
-                    label: 'Delete',
-                    severity: 'danger'
-                },
-                accept: () => {
-                    console.log(id);
-                    this.deleteRecord(id); // Proceed with the deletion
-
-                },
-            });
-        },
         async deleteRecord(id) {
                 try {
                     this.isSubmitting = true;
@@ -816,6 +816,19 @@ export default {
                     this.loading = false;
                     this.getInquiries();
                 }
+        },
+        confirmDeleteVocation(id) {
+            this.$confirm.require({
+                message: 'Are you sure you want to delete this record?',
+                header: 'Confirmation',
+                icon: 'pi pi-exclamation-triangle',
+                accept: () => {
+                    this.deleteRecord(id);
+                },
+                reject: () => {
+                    // Do nothing on reject
+                }
+            });
         },
         async getAirports() {
           try {
@@ -940,7 +953,7 @@ export default {
                     vacation_flexibility: inquiry.vacation_flexibility,
                     vacation_total_days: inquiry.vacation_total_days,
                     vacation_preferred_airline: inquiry.vacation_preferred_airline,
-                    vacation_departing_date: inquiry.vacation_departing_date,
+                    vacation_departing_date: inquiry.vacation_departing_date || '',
 
                     customer_contacted: inquiry.customer_contacted === 1 ? '1' : '0',
                     quote_submitted: inquiry.quote_submitted === 1 ? '1' : '0',

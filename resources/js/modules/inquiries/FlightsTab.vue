@@ -59,7 +59,7 @@
                     placeholder="Search by First Name" class="form-control" />
             </template>
             <template #body="slotProps">
-                {{ slotProps.data.member?.first_name }}
+                {{  slotProps.data.first_name }}
             </template>
         </Column>
         <Column field="last_name" header="Last Name" sortable :showFilterMatchModes="false">
@@ -68,7 +68,7 @@
                     placeholder="Search by Last Name" class="form-control" />
             </template>
             <template #body="slotProps">
-                {{ slotProps.data.member?.last_name }}
+                {{  slotProps.data.last_name }}
             </template>
         </Column>
         <Column field="phone_no" header="Phone" sortable :showFilterMatchModes="false">
@@ -77,7 +77,7 @@
                     placeholder="Search by Phone" class="form-control" />
             </template>
             <template #body="slotProps">
-                {{ slotProps.data.member?.phone_no }}
+                {{  slotProps.data.contact_no }}
             </template>
         </Column>
         <Column field="email" header="Email" sortable :showFilterMatchModes="false">
@@ -86,7 +86,7 @@
                     placeholder="Search by Email" class="form-control" />
             </template>
             <template #body="slotProps">
-                {{ slotProps.data.member?.email }}
+                {{  slotProps.data.contact_email }}
             </template>
         </Column>
         <Column field="origin" header="Origin" sortable :showFilterMatchModes="false">
@@ -116,7 +116,7 @@
                 {{ slotProps.data.booking_status}}
             </template>
         </Column>
-        <Column field="agent" header="Agent" sortable :showFilterMatchModes="false">
+        <Column field="agent.first_name" header="Agent" sortable :showFilterMatchModes="false">
             <template #filter="{ filterModel }">
                 <InputText v-model="filterModel.value" type="text"
                     placeholder="Search by Agent" class="form-control" />
@@ -139,7 +139,7 @@
                         <i class="pi pi-file-edit"></i>
                     </a>
                     <a href="javascript:void(0)"
-                        @click="handelDelete($event, slotProps.data.id)" class="m-2 text-danger"
+                        @click.stop="confirmDeleteflight(slotProps.data.id)" class="m-2 text-danger"
                         title="Delete">
                         <i class="pi pi-trash"></i>
                     </a>
@@ -609,7 +609,7 @@
                             placeholder="Select Agent" 
                             class="w-100" 
                             :id="'agent_name_' + index"
-                            disabled                                   
+                            :disabled="commentAgentDisabled"                                   
                         />
                     </div>
                     
@@ -633,7 +633,7 @@
         </form>
     </Sidebar>
     <Toast ref="toast" />
-    <confirmDialog />
+<confirmDialog />
 </template>
 
 <script>
@@ -649,6 +649,7 @@ export default {
             currentUserId: null,
             form: new Form({
               id: null,
+              commentAgentDisabled: false, // Flag to determine if the agent can add comments
               flying_type: 'return',
               booking_flight: [ // Dynamic section for receipt details
                     {
@@ -725,16 +726,16 @@ export default {
             ],
             filters: {
                 inquiry_code: { value: null },
+                created_at: { value: null },
+                booking_ref: { value: null },
                 first_name: { value: null },
                 last_name: { value: null },
-                email: { value: null },
                 phone_no: { value: null },
-                booking_ref: { value: null },
-                flying_type: { value: null },
+                email: { value: null },
+                'booking_flight.origin': { value: null },
+                'booking_flight.destination': { value: null },
                 booking_status: { value: null },
-                agent: { value: null },
-                origin: { value: null },
-                destination: { value: null },
+                'agent.first_name': { value: null },
             },
             rows: 10, // Number of records per page
             totalRecords: 0, // Total number of records
@@ -744,7 +745,6 @@ export default {
         }
     },
     mounted() {
-        this.getAgents();
     },
     methods: {
         async checkAuth() {
@@ -778,8 +778,11 @@ export default {
         }
       },
         formatDate(date) {
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            return new Date(date).toLocaleDateString('en-US', options);
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         },
         getOrigin(bookingFlights) {
             if (bookingFlights && bookingFlights.length > 0) {
@@ -890,41 +893,21 @@ export default {
                 this.loading = false;
             }
         }, 
-        async handelDelete(event, id) {
-            this.$confirm.require({
-                target: event.currentTarget,
-                message: 'Do you want to delete this record?',
-                icon: 'pi pi-info-circle',
-                rejectProps: {
-                    label: 'Cancel',
-                    severity: 'secondary',
-                    outlined: true
-                },
-                acceptProps: {
-                    label: 'Delete',
-                    severity: 'danger'
-                },
-                accept: () => {
-                    console.log(id);
-                    this.deleteRecord(id); // Proceed with the deletion
-
-                },
-            });
-        },
+        
         async deleteRecord(id) {
-                try {
-                    this.isSubmitting = true;
-                    const response = await axios.delete(`/api/inquiry/${id}`);
-                    this.$refs.toast.add({ severity: 'success', summary: 'Success', detail: 'Record deleted successfully', life: 3000 });
-                    
-                } catch (error) {
-                    this.$refs.toast.add({ severity: 'error', summary: 'Error', detail: 'Error deleting record', life: 3000 });
-                    
-                } finally {
-                    this.isSubmitting = false; // hide loader
-                    this.loading = false;
-                    this.getInquiries();
-                }
+            try {
+                this.isSubmitting = true;
+                const response = await axios.delete(`/api/inquiry/${id}`);
+                this.$refs.toast.add({ severity: 'success', summary: 'Success', detail: 'Record deleted successfully', life: 3000 });
+                
+            } catch (error) {
+                this.$refs.toast.add({ severity: 'error', summary: 'Error', detail: 'Error deleting record', life: 3000 });
+                
+            } finally {
+                this.isSubmitting = false; // hide loader
+                this.loading = false;
+                this.getInquiries();
+            }
         },       
         handleFile(event) {
             const file = event.target.files[0];
@@ -954,32 +937,32 @@ export default {
                 this.loading = false; // Set loading to false
             }
         },
-      async getAirports() {
-          try {
-              this.loading = true;
-              const response = await axios.get('/api/airport');
-              this.airports = response.data.data.map(airport => ({
-                        value: airport.id,
-                        label:  airport.iata +' '+ airport.airport_name +' '+ airport.city?.city_name +' '+ airport.city?.country?.country,
-                    }));
-              this.loading = false;
-          } catch (error) {
-              console.error('Error fetching Cities:', error);
-              this.loading = false;
-          }
-      },
-      async getAirlines() {
-          try {
-              this.loading = true;
-              const response = await axios.get('/api/airline');
-              this.airlines = response.data.data; // Data for the current page
-              this.loading = false;
-          } catch (error) {
-              console.error('Error fetching Cities:', error);
-              this.loading = false;
-          }
-      },
-      async getCountries() {
+        async getAirports() {
+            try {
+                this.loading = true;
+                const response = await axios.get('/api/airport');
+                this.airports = response.data.data.map(airport => ({
+                            value: airport.id,
+                            label:  airport.iata +' '+ airport.airport_name +' '+ airport.city?.city_name +' '+ airport.city?.country?.country,
+                        }));
+                this.loading = false;
+            } catch (error) {
+                console.error('Error fetching Cities:', error);
+                this.loading = false;
+            }
+        },
+        async getAirlines() {
+            try {
+                this.loading = true;
+                const response = await axios.get('/api/airline');
+                this.airlines = response.data.data; // Data for the current page
+                this.loading = false;
+            } catch (error) {
+                console.error('Error fetching Cities:', error);
+                this.loading = false;
+            }
+        },
+        async getCountries() {
             try {
                 this.loading = true;
                 const response = await axios.get('/api/country');
@@ -996,7 +979,7 @@ export default {
                 this.loading = false;
             }
         },
-      async getAgents() {
+        async getAgents() {
             try {
                 this.loading = true;
                 const response = await axios.get('/api/agents');
@@ -1056,8 +1039,8 @@ export default {
                     travel_doc: inquiry.travel_doc,
                     travel_doc_other: inquiry.travel_doc_other,
                     travel_doc_nationality: inquiry.travel_doc_nationality,
-                    checkin_date: inquiry.hotel_checkin_date,
-                    checkout_date: inquiry.hotel_checkout_date,
+                    checkin_date: inquiry.hotel_checkin_date || '',
+                    checkout_date: inquiry.hotel_checkout_date || '',
                     customer_contacted: inquiry.customer_contacted === 1 ? '1' : '0',
                     quote_submitted: inquiry.quote_submitted === 1 ? '1' : '0',
                     reservation_made: inquiry.reservation_made === 1 ? '1' : '0',
@@ -1100,7 +1083,7 @@ export default {
                     id: inquiry.id, // Fill form with category details
 
                 });
-                
+                this.commentAgentDisabled= true;
                 if (inquiry.files ) {
                     this.previous_file = inquiry.files.file_name;
                     this.previous_file_path = APP_URL+inquiry.files.file_real_path;
@@ -1166,7 +1149,7 @@ export default {
             }
             this.visibleRight = true;
         },
-        confirmDelete(id) {
+        confirmDeleteflight(id) {
             this.$confirm.require({
                 message: 'Are you sure you want to delete this record?',
                 header: 'Confirmation',
@@ -1186,7 +1169,6 @@ export default {
             this.applyFilter('filter', filters);
         },
         onSort(event) {
-            console.log(event);
             this.sortField = event.sortField;
             this.sortOrder = event.sortOrder;
             this.applyFilter('sort', event);

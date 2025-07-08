@@ -24,9 +24,9 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body p-0">
-                            <div class="p-2">
+                            <!-- <div class="p-2">
                                 <input type="text" v-model="filters['global'].value" placeholder="Search..." class="form-control">
-                            </div>
+                            </div> -->
                             <DataTable
                                 v-model:filters="filters"
                                 size="small"
@@ -47,6 +47,7 @@
                                     header="Role"
                                     style="min-width: 12rem"
                                     sortable
+                                    :showFilterMatchModes="false"
                                 >
                                     <template #filter="{ filterModel }">
                                         <InputText
@@ -62,6 +63,7 @@
                                     header="Guard"
                                     style="min-width: 12rem"
                                     sortable
+                                    :showFilterMatchModes="false"
                                 >
                                     <template #filter="{ filterModel }">
                                         <InputText
@@ -257,7 +259,8 @@ export default {
             editMode: false,
             loading: false,
             filters: {
-                'global': { value: null, matchMode: 'contains' }
+                'name': { value: null, matchMode: 'contains' },
+                'guard_name': { value: null, matchMode: 'contains' },
             },
             modules: {},
             Roles: [],

@@ -10,6 +10,7 @@ use App\Http\Requests\StoreBookingRequest;
 use App\Http\Requests\UpdateBookingRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -78,29 +79,76 @@ class BookingController extends Controller implements HasMiddleware
         // Filtering
         if ($request->has('filters')) {
             $filters = json_decode($request->filters, true);
-            foreach ($filters as $filter => $value) {
-                if (!empty($value['value'])) {
-                    $query->where($filter, 'like', '%' . $value['value'] . '%');
+            foreach ($filters as $field => $filter) {
+                if (empty($filter['value'])) {
+                    continue;
+                }
+                $value = $filter['value'];
+                $searchTerm = '%' . $value . '%';
+                switch ($field) {
+                    case 'agent.first_name':
+                        $query->whereHas('agent', fn($q) => $q->where('first_name', 'like', $searchTerm));
+                        break;
+                    case 'booking_flight.origin':
+                        $query->whereHas('bookingFlight.flightFrom', fn($q) => $q->where('airport_name', 'like', $searchTerm));
+                        break;
+                    case 'booking_flight.destination':
+                        $query->whereHas('bookingFlight.flightTo', fn($q) => $q->where('airport_name', 'like', $searchTerm));
+                        break;
+                    case 'created_at':
+                        // $date = Carbon::parse($searchTerm)->startOfDay();
+                        $query->whereHas('created_at', $searchTerm);
+                        break;
+                    default:
+                        if (Schema::hasColumn((new Booking())->getTable(), $field)) {
+                            $query->where($field, 'like', $searchTerm);
+                        }
+                        break;
                 }
             }
         }
 
         // Sorting
         if ($request->has('sortField') && $request->has('sortOrder')) {
-            if ($request['sortOrder'] == 1) {
-                $order = 'asc';
-            } else {
-                $order = 'desc';
+            $order = $request->sortOrder == 1 ? 'asc' : 'desc';
+            $sortField = $request->sortField;
+
+            $relationSortMap = [
+                'agent.first_name' => ['relation' => 'agent', 'column' => 'first_name'],
+                'booking_flight.origin' => ['relation' => 'bookingFlight.flightFrom', 'column' => 'airport_name'],
+                'booking_flight.destination' => ['relation' => 'bookingFlight.flightTo', 'column' => 'airport_name'],
+            ];
+
+            if (array_key_exists($sortField, $relationSortMap)) {
+                $sortConfig = $relationSortMap[$sortField];
+                $query->with([$sortConfig['relation'] => function($q) use ($sortConfig, $order) {
+                    $q->orderBy($sortConfig['column'], $order);
+                }]);
+            } elseif (Schema::hasColumn((new Booking())->getTable(), $sortField)) {
+                $query->orderBy($sortField, $order);
             }
-            $query->orderBy($request['sortField'], $order);
         } else {
-            $query->orderBy('created_at', 'desc');
+            $query->latest();
         }
 
         // Pagination
-        $resources = $query->paginate($request->rows);
+        $perPage = $request->rows ?? 10;
+        $page = $request->page ?? 1;
+        
+        // Get total count before pagination for proper pagination info
+        $total = $query->count();
+        
+        // Apply pagination
+        $resources = $query->skip(($page - 1) * $perPage)
+                        ->take($perPage)
+                        ->get();
 
-        return response()->json($resources);
+        return response()->json([
+            'data' => $resources,
+            'total' => $total,
+            'current_page' => (int)$page,
+            'per_page' => (int)$perPage,
+        ]);
     }
     public function vacationInquiry()
     {
@@ -111,29 +159,76 @@ class BookingController extends Controller implements HasMiddleware
         // Filtering
         if ($request->has('filters')) {
             $filters = json_decode($request->filters, true);
-            foreach ($filters as $filter => $value) {
-                if (!empty($value['value'])) {
-                    $query->where($filter, 'like', '%' . $value['value'] . '%');
+            foreach ($filters as $field => $filter) {
+                if (empty($filter['value'])) {
+                    continue;
+                }
+                $value = $filter['value'];
+                $searchTerm = '%' . $value . '%';
+                switch ($field) {
+                    case 'agent.first_name':
+                        $query->whereHas('agent', fn($q) => $q->where('first_name', 'like', $searchTerm));
+                        break;
+                    case 'vacation_origin.airport_name':
+                        $query->whereHas('vacationOrigin', fn($q) => $q->where('airport_name', 'like', $searchTerm));
+                        break;
+                    case 'vacation_destination.country':
+                        $query->whereHas('vacationDestination', fn($q) => $q->where('country', 'like', $searchTerm));
+                        break;
+                    case 'created_at':
+                        // $date = Carbon::parse($searchTerm)->startOfDay();
+                        $query->whereHas('created_at', $searchTerm);
+                        break;
+                    default:
+                        if (Schema::hasColumn((new Booking())->getTable(), $field)) {
+                            $query->where($field, 'like', $searchTerm);
+                        }
+                        break;
                 }
             }
         }
 
         // Sorting
         if ($request->has('sortField') && $request->has('sortOrder')) {
-            if ($request['sortOrder'] == 1) {
-                $order = 'asc';
-            } else {
-                $order = 'desc';
+            $order = $request->sortOrder == 1 ? 'asc' : 'desc';
+            $sortField = $request->sortField;
+
+            $relationSortMap = [
+                'agent.first_name' => ['relation' => 'agent', 'column' => 'first_name'],
+                'vacation_origin.airport_name' => ['relation' => 'vacationOrigin', 'column' => 'airport_name'],
+                'vacation_destination.country' => ['relation' => 'vacationDestination', 'column' => 'country'],
+            ];
+
+            if (array_key_exists($sortField, $relationSortMap)) {
+                $sortConfig = $relationSortMap[$sortField];
+                $query->with([$sortConfig['relation'] => function($q) use ($sortConfig, $order) {
+                    $q->orderBy($sortConfig['column'], $order);
+                }]);
+            } elseif (Schema::hasColumn((new Booking())->getTable(), $sortField)) {
+                $query->orderBy($sortField, $order);
             }
-            $query->orderBy($request['sortField'], $order);
         } else {
-            $query->orderBy('created_at', 'desc');
+            $query->latest();
         }
 
         // Pagination
-        $resources = $query->paginate($request->rows);
+        $perPage = $request->rows ?? 10;
+        $page = $request->page ?? 1;
+        
+        // Get total count before pagination for proper pagination info
+        $total = $query->count();
+        
+        // Apply pagination
+        $resources = $query->skip(($page - 1) * $perPage)
+                        ->take($perPage)
+                        ->get();
 
-        return response()->json($resources);
+        return response()->json([
+            'data' => $resources,
+            'total' => $total,
+            'current_page' => (int)$page,
+            'per_page' => (int)$perPage,
+        ]);
     }
     public function cruiseInquiry()
     {
@@ -144,29 +239,76 @@ class BookingController extends Controller implements HasMiddleware
         // Filtering
         if ($request->has('filters')) {
             $filters = json_decode($request->filters, true);
-            foreach ($filters as $filter => $value) {
-                if (!empty($value['value'])) {
-                    $query->where($filter, 'like', '%' . $value['value'] . '%');
+            foreach ($filters as $field => $filter) {
+                if (empty($filter['value'])) {
+                    continue;
+                }
+                $value = $filter['value'];
+                $searchTerm = '%' . $value . '%';
+                switch ($field) {
+                    case 'agent.first_name':
+                        $query->whereHas('agent', fn($q) => $q->where('first_name', 'like', $searchTerm));
+                        break;
+                    case 'cruises_origin.airport_name':
+                        $query->whereHas('cruisesOrigin', fn($q) => $q->where('airport_name', 'like', $searchTerm));
+                        break;
+                    case 'cruises_destination.region':
+                        $query->whereHas('cruisesDestination', fn($q) => $q->where('region', 'like', $searchTerm));
+                        break;
+                    case 'created_at':
+                        // $date = Carbon::parse($searchTerm)->startOfDay();
+                        $query->whereHas('created_at', $searchTerm);
+                        break;
+                    default:
+                        if (Schema::hasColumn((new Booking())->getTable(), $field)) {
+                            $query->where($field, 'like', $searchTerm);
+                        }
+                        break;
                 }
             }
         }
 
         // Sorting
         if ($request->has('sortField') && $request->has('sortOrder')) {
-            if ($request['sortOrder'] == 1) {
-                $order = 'asc';
-            } else {
-                $order = 'desc';
+            $order = $request->sortOrder == 1 ? 'asc' : 'desc';
+            $sortField = $request->sortField;
+
+            $relationSortMap = [
+                'agent.first_name' => ['relation' => 'agent', 'column' => 'first_name'],
+                'vacation_origin.airport_name' => ['relation' => 'vacationOrigin', 'column' => 'airport_name'],
+                'vacation_destination.country' => ['relation' => 'vacationDestination', 'column' => 'country'],
+            ];
+
+            if (array_key_exists($sortField, $relationSortMap)) {
+                $sortConfig = $relationSortMap[$sortField];
+                $query->with([$sortConfig['relation'] => function($q) use ($sortConfig, $order) {
+                    $q->orderBy($sortConfig['column'], $order);
+                }]);
+            } elseif (Schema::hasColumn((new Booking())->getTable(), $sortField)) {
+                $query->orderBy($sortField, $order);
             }
-            $query->orderBy($request['sortField'], $order);
         } else {
-            $query->orderBy('created_at', 'desc');
+            $query->latest();
         }
 
         // Pagination
-        $resources = $query->paginate($request->rows);
+        $perPage = $request->rows ?? 10;
+        $page = $request->page ?? 1;
+        
+        // Get total count before pagination for proper pagination info
+        $total = $query->count();
+        
+        // Apply pagination
+        $resources = $query->skip(($page - 1) * $perPage)
+                        ->take($perPage)
+                        ->get();
 
-        return response()->json($resources);
+        return response()->json([
+            'data' => $resources,
+            'total' => $total,
+            'current_page' => (int)$page,
+            'per_page' => (int)$perPage,
+        ]);
     }
     /**
      * Store a newly created resource in storage.
@@ -177,7 +319,7 @@ class BookingController extends Controller implements HasMiddleware
             DB::beginTransaction();
 
             // Validate date range
-            if ($request->has(['checkin_date', 'checkout_date'])) {
+            if ($request->has(['checkin_date', 'checkout_date']) && $request->checkin_date != "" && $request->checkout_date != "") {
                 $checkin = Carbon::parse($request->checkin_date)->startOfDay();
                 $checkout = Carbon::parse($request->checkout_date)->startOfDay();
                 
@@ -275,6 +417,10 @@ class BookingController extends Controller implements HasMiddleware
             'customer_identification'=> $request->customer_identification ?? null,
             'agent_name' => $request->agent_name ?? null,
             'userid' => auth()->id(),
+            'first_name' => $request->first_name ?? null,
+            'last_name' => $request->last_name ?? null,
+            'contact_no' => $request->contact_no ?? null,
+            'contact_email' => $request->member_email ?? null
         ]);
         if(!$booking){
             throw new \Exception('Booking not created.');                    
@@ -367,6 +513,10 @@ class BookingController extends Controller implements HasMiddleware
             'insurance_purchased' => $request->insurance_purchased ,
             'customer_identification' => $request->customer_identification ?? $booking->customer_identification,
             'agent_name' => $request->agent_name,
+            'first_name' => $request->first_name ?? $booking->first_name,
+            'last_name' => $request->last_name ?? $booking->last_name,
+            'contact_no' => $request->contact_no ?? $booking->contact_no,
+            'contact_email' => $request->member_email ?? $booking->contact_email
         ]);
 
         // Handle file upload
@@ -382,7 +532,7 @@ class BookingController extends Controller implements HasMiddleware
             BookingFlight::where('booking_id', $booking->id)->delete();
 
             foreach ($flightDetails as $detail) {
-                if (isset($detail['departing_date']) && isset($detail['returning_date']) && $detail['returning_date'] !== "" && $detail['departing_date'] > $detail['returning_date']) {
+                if (isset($detail['departing_date']) && isset($detail['returning_date']) && $detail['returning_date'] !== "1970-01-01" && $detail['returning_date'] !== "" && $detail['departing_date'] > $detail['returning_date']) {
                     throw new \Exception('Departing Date should be smaller than Returning Date.');
                 }
                 BookingFlight::create([
@@ -530,6 +680,7 @@ class BookingController extends Controller implements HasMiddleware
                     'vacation_total_days'=> $request->vacation_total_days ?? null,
                     'vacation_flexibility'=> $request->vacation_flexibility ?? null,
                     'vacation_preferred_airline'=> $request->vacation_preferred_airline ?? null,
+                    'vacation_departing_date' => $request->vacation_departing_date ?? null,
 
                     'adults'=> $request->adults ?? null, 
                     'children'=> $request->children ?? null, 
@@ -542,7 +693,11 @@ class BookingController extends Controller implements HasMiddleware
                     
                     'customer_identification'=> $request->customer_identification ?? null,
                     'agent_name' => $request->agent_name ?? null,
-                    'userid' => auth()->id(),
+                    'userid' => auth()->id(),                    
+                    'first_name' => $request->first_name ?? null,
+                    'last_name' => $request->last_name ?? null,
+                    'contact_no' => $request->contact_no ?? null,
+                    'contact_email' => $request->member_email ?? null
                 ]);
                 if(!$booking){
                     throw new \Exception('Booking not created.');                    
