@@ -25,19 +25,8 @@ trait FileUpload
             try {
                 // Upload directly to S3
                 $path = Storage::disk('s3')->putFileAs($destinationPath, $file, $fileName);
-                $storagePath = $folderName  . $fileName;
-                $fileRecord = new File();
-                $fileRecord->file_name = $file->getClientOriginalName();
-                $fileRecord->file_real_path = $storagePath; // Store the modified path
-                $fileRecord->file_extension = $file->getClientOriginalExtension(); // Store the modified path
-                $fileRecord->file_size = $file->getSize(); // Store the modified path
-                $fileRecord->file_mime_type = $file->getMimeType(); // Store the modified path
-                $fileRecord->fileable_id = $model->id;
-                $fileRecord->user_id = auth()->user()->id;
-                $fileRecord->fileable_type = get_class($model);
-                $fileRecord->save();
-
-                return $fileRecord;
+                return $storagePath = $folderName  . $fileName;
+                
             } catch (\Exception $e) {
                 Log::error('S3 Upload Error: ' . $e->getMessage());
                 return false;

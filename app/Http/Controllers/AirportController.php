@@ -31,9 +31,17 @@ class AirportController extends Controller implements HasMiddleware
         // Filtering
         if ($request->has('filters')) {
             $filters = json_decode($request->filters, true);
-            foreach ($filters as $filter => $value) {
-                if (!empty($value['value'])) {                    
-                    $query->where($filter, 'like', '%' . $value['value'] . '%');
+            foreach ($filters as $filter => $value) {                
+                if (!empty($value['value'])) {
+                    if (str_contains($filter, '.')) {
+                        // Split the filter into relation and field (e.g., 'region_type.region_type')
+                        [$relation, $field] = explode('.', $filter);
+                        $query->whereHas($relation, function ($q) use ($field, $value) {
+                            $q->where($field, 'like', '%' . $value['value'] . '%');
+                        });
+                    } else {                        
+                        $query->where($filter, 'like', '%' . $value['value'] . '%');
+                    }                    
                 }
             }
         }

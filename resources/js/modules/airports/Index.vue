@@ -109,7 +109,7 @@
                                     :showFilterMatchModes="false">
                                     <template #filter="{ filterModel }">
                                         <InputText v-model="filterModel.value" type="text"
-                                            placeholder="Search by Province" class="form-control" />
+                                            placeholder="Search by City" class="form-control" />
                                     </template>
                                     <template #body="slotProps">
                                         {{ slotProps.data.city?.city_name }}
@@ -304,7 +304,7 @@ export default {
                 timezone: { value: null },
                 dst: { value: null },
                 'city.city_name': { value: null },
-                'province.province_name': { value: null },
+                'city.province.province_name': { value: null },
                 'country.country': { value: null }
             },
             initialLoad: true,
@@ -474,12 +474,12 @@ export default {
             this.applyFilter('page', event);
         },
         applyFilter(actionType, event) {
-            this.getCities();
+            this.getRecords();
         },
         onPageChange(event) {
             this.page = event.page + 1;
             this.rows = event.rows;
-            this.getCities();
+            this.getRecords();
         }
     },
     mounted() {

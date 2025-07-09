@@ -27,12 +27,12 @@
                                 <DataTable :value="documents" :rows="rows" scrollable scrollHeight="400px" sortMode="multiple" tableStyle="min-width: 50rem" :loading="loading"
                                 :filters="filters" paginator :rowsPerPageOptions="[10, 20, 50]">
                                     
-                                    <Column field="document_name" header="Title" sortable></Column>
+                                    <Column field="document_description" header="Document Description" sortable></Column>
                                     <Column field="document_category" header="Category" sortable></Column>
                                     <Column field="document_access" header="Access Level" sortable></Column>
                                     <Column field="file" header="File" style="min-width: 200px">
                                         <template #body="slotProps">
-                                            <a :href="S3Path + slotProps.data.files?.file_real_path" target="_blank" >
+                                            <a :href="S3Path + slotProps.data.document_name" target="_blank" >
                                                 View 
                                             </a>
                                         </template> 
@@ -72,10 +72,10 @@
             <div class="row">
                 <div class="form-group col-md-12">
                     <label for="course">Label (*)</label>
-                    <input type="text" v-model="form.document_name" class="form-control" id="course"
+                    <input type="text" v-model="form.document_description" class="form-control" id="course"
                         aria-describedby="courseHelp" required/>                        
-                    <small id="courseHelp" class="form-text text-danger" v-if="form.errors.has('document_name')"
-                        v-html="form.errors.get('document_name')"></small>
+                    <small id="courseHelp" class="form-text text-danger" v-if="form.errors.has('document_description')"
+                        v-html="form.errors.get('document_description')"></small>
                 </div>
                 <div class="form-group col-md-6">
                     <label for="document_access">Access Level (*)</label>
@@ -97,12 +97,6 @@
                     <small id="courseHelp" class="form-text text-danger" v-if="form.errors.has('document_category')"
                         v-html="form.errors.get('document_category')"></small>
                 </div>
-                <div class="form-group col-md-3">
-                    <label for="active">Active &nbsp;</label>
-                    <InputSwitch v-model="form.active" class="form-control mt-3" />
-                    <small class="text-danger" v-if="form.errors.has('active')"
-                        v-html="form.errors.get('active')"></small>
-                </div>
                 <div class="form-group col-md-9">
                     <label for="file">File (*)</label>
                     <input type="file" class="form-control" id="file" @change="handleFile" required>
@@ -112,12 +106,6 @@
                 <div v-if="previous_file" class="form-group col-md-12">
                     <label for="file">Previous File: </label>
                     <a :href="previous_file_path" target="_blank">Download/View</a>
-                </div>
-                <div class="form-group col-md-12">
-                    <label for="document_description">Description</label>
-                    <Textarea v-model="form.document_description" id="document_description" rows="3" class="form-control"></Textarea>
-                    <small id="ProgramHelp" class="form-text text-danger" v-if="form.errors.has('document_description')"
-                        v-html="form.errors.get('document_description')"></small>
                 </div>
             </div>
             <button type="submit" class="btn btn-primary">Submit</button>
@@ -269,13 +257,12 @@ export default {
                     document_category: document.document_category,
                     document_access: document.document_access,
                     document_description: document.document_description,
-                    active: document.active == 1 ? true : false,
                     id: document.id, // Fill form with category details
 
                 });
                 if (document.files ) {
                     this.previous_file = document.files.file_name;
-                    this.previous_file_path = this.S3Path+document.files.file_real_path;
+                    this.previous_file_path = this.S3Path+document.document_name;
                 }else{
                     this.previous_file = null;
                     this.previous_file_path = null;

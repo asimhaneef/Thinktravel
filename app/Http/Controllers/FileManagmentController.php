@@ -60,43 +60,63 @@ class FileManagmentController extends Controller
 
         if(isset($request->id) && $request->id != "null" && $request->id > 0){
             $query = FileManagment::find($request->id);
-            $query->update([
-                'userid' => auth()->id(),
-                'document_access' => $request->document_access,
-                'document_name' => $request->document_name,
-                'document_category' => $request->document_category,
-                'document_description' => $request->document_description,
-                'active' => $request->active == "true" ? 1 : 0,
-            ]);
+            
             if ($request->hasFile('file')) {
-                // $file = $request->file('file');
+                $file = $request->file('file');
                 // $this->uploadFile($file, 'FileManagment', $query);
 
-                $destinationPath =  'fileManagment';
-                $folderName      = 'fileManagment/';
-                $fileInfo        = $this->s3SingleFileUpload($destinationPath, $request, 'file', $folderName, $query);
+                $destinationPath =  'uploads';
+                $folderName      = 'uploads/';
+                $storagePath        = $this->s3SingleFileUpload($destinationPath, $request, 'file', $folderName, $query);
 
+
+                // $fileRecord = new File();
+                // $fileRecord->file_name = $file->getClientOriginalName();
+                // $fileRecord->file_real_path = $storagePath; // Store the modified path
+                // $fileRecord->file_extension = $file->getClientOriginalExtension(); // Store the modified path
+                // $fileRecord->file_size = $file->getSize(); // Store the modified path
+                // $fileRecord->file_mime_type = $file->getMimeType(); // Store the modified path
+                // $fileRecord->fileable_id = $query->id;
+                // $fileRecord->user_id = auth()->user()->id;
+                // $fileRecord->fileable_type = get_class($query);
+                // $fileRecord->save();
+
+                 return $query->update([
+                    'userid' => auth()->id(),
+                    'document_access' => $request->document_access,
+                    'document_name' => $storagePath,
+                    'document_category' => $request->document_category,
+                    'document_description' => $request->document_description,
+                ]);
+            }
+            
+            else {
+                return $query->update([
+                    'userid' => auth()->id(),
+                    'document_access' => $request->document_access,
+                    'document_category' => $request->document_category,
+                    'document_description' => $request->document_description,
+                ]);
             }
         } else {
 
             // Create the post
-            $document = FileManagment::create([
-                    'userid' => auth()->id(),
-                    'document_access' => $request->document_access,
-                    'document_name' => $request->document_name,
-                    'document_category' => $request->document_category,
-                    'document_description' => $request->document_description,
-                    'active' => $request->active == "true" ? 1 : 0,
-            ]);
-
-            // Handle file upload
+            
             if ($request->hasFile('file')) {
-            //     $file = $request->file('file');
-            // $this->uploadFile($file, 'FileManagment', $document);
-                $destinationPath =  'fileManagment';
-                $folderName      = 'fileManagment/';
-                $fileInfo        = $this->s3SingleFileUpload($destinationPath, $request, 'file', $folderName, $document);
-        }
+                //     $file = $request->file('file');
+                // $this->uploadFile($file, 'FileManagment', $document);
+                    $destinationPath =  'uploads';
+                    $folderName      = 'uploads/';
+                    $fileInfo        = $this->s3SingleFileUpload($destinationPath, $request, 'file', $folderName, $document);
+
+                    return $document = FileManagment::create([
+                        'userid' => auth()->id(),
+                        'document_access' => $request->document_access,
+                        'document_name' => $fileInfo,
+                        'document_category' => $request->document_category,
+                        'document_description' => $request->document_description,
+                    ]);
+            }
         }
 
         return true;
