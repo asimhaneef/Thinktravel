@@ -14,9 +14,39 @@ trait FileUpload
      * @param string $directory
      * @return File
      */
-    public function uploadFile(UploadedFile $file, string $directory, $model): File
+    public function s3SingleFileUpload($destinationPath, $requestData, $fileName, $folderName = null, $model)
     {
-        
+        $file = $requestData->file($fileName);
+        info($file);
+        if ($file) {
+                // Generate a unique file name
+                $fileName = time() . '_' . $file->getClientOriginalName();
+
+            try {
+                // Upload directly to S3
+                $path = Storage::disk('s3')->putFileAs($destinationPath, $file, $fileName);
+                $storagePath = $folderName  . $fileName;
+                $fileRecord = new File();
+                $fileRecord->file_name = $file->getClientOriginalName();
+                $fileRecord->file_real_path = $storagePath; // Store the modified path
+                $fileRecord->file_extension = $file->getClientOriginalExtension(); // Store the modified path
+                $fileRecord->file_size = $file->getSize(); // Store the modified path
+                $fileRecord->file_mime_type = $file->getMimeType(); // Store the modified path
+                $fileRecord->fileable_id = $model->id;
+                $fileRecord->user_id = auth()->user()->id;
+                $fileRecord->fileable_type = get_class($model);
+                $fileRecord->save();
+
+                return $fileRecord;
+            } catch (\Exception $e) {
+                Log::error('S3 Upload Error: ' . $e->getMessage());
+                return false;
+            }
+        }
+        return false;
+    }
+    public function uploadFile(UploadedFile $file, string $directory, $model): File
+    {        
         // Store the file
         $path = $file->store('public/'.$directory);
         

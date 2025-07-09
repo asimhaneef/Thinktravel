@@ -6,6 +6,8 @@ use App\Models\FileManagment;
 use App\Traits\FileUpload;
 use App\Http\Requests\StoreFileManagmentRequest;
 use App\Http\Requests\UpdateFileManagmentRequest;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class FileManagmentController extends Controller
 {
@@ -50,9 +52,12 @@ class FileManagmentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    
+
     public function store(StoreFileManagmentRequest $request)
     {
-        //
+        //   
+
         if(isset($request->id) && $request->id != "null" && $request->id > 0){
             $query = FileManagment::find($request->id);
             $query->update([
@@ -64,8 +69,13 @@ class FileManagmentController extends Controller
                 'active' => $request->active == "true" ? 1 : 0,
             ]);
             if ($request->hasFile('file')) {
-                $file = $request->file('file');
-                $this->uploadFile($file, 'FileManagment', $query);
+                // $file = $request->file('file');
+                // $this->uploadFile($file, 'FileManagment', $query);
+
+                $destinationPath =  'fileManagment';
+                $folderName      = 'fileManagment/';
+                $fileInfo        = $this->s3SingleFileUpload($destinationPath, $request, 'file', $folderName, $query);
+
             }
         } else {
 
@@ -81,8 +91,11 @@ class FileManagmentController extends Controller
 
             // Handle file upload
             if ($request->hasFile('file')) {
-                $file = $request->file('file');
-            $this->uploadFile($file, 'FileManagment', $document);
+            //     $file = $request->file('file');
+            // $this->uploadFile($file, 'FileManagment', $document);
+                $destinationPath =  'fileManagment';
+                $folderName      = 'fileManagment/';
+                $fileInfo        = $this->s3SingleFileUpload($destinationPath, $request, 'file', $folderName, $document);
         }
         }
 
@@ -112,14 +125,13 @@ class FileManagmentController extends Controller
     public function destroy(FileManagment $fileManagment)
     {
         //
-        try {
-            $document = fileManagment::find($request);
-            $document->delete();
+        // try {
+            $fileManagment->delete();
             return true;
-        } catch (\Exception $e) {
-            Log::error($e);
-            return false;
-        }
+        // } catch (\Exception $e) {
+        //     Log::error($e);
+        //     return false;
+        // }
     }
     public function webDocuments()
     {

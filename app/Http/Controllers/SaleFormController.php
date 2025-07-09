@@ -42,29 +42,29 @@ class SaleFormController extends Controller implements HasMiddleware
             $filters = json_decode($request->filters, true);
             foreach ($filters as $filter => $value) {
                 if($filter == 'agent.username') {
-                    $query->whereHas('agent', function($q) use ($value) {
-                        if (!empty($value['value'])) {
-                            $q->where('username', 'like', '%' . $value['value'] . '%');
-                        }
-                    });
-                } elseif ($filter == 'supplier.username') {
-                    $query->whereHas('supplier', function($q) use ($value) {
-                        if (!empty($value['value'])) {
-                            $q->where('username', 'like', '%' . $value['value'] . '%');
-                        }
-                    });
-                } elseif ($filter == 'secondaryAgent.username') {
-                    $query->whereHas('secondaryAgent', function($q) use ($value) {
-                        if (!empty($value['value'])) {
-                            $q->where('username', 'like', '%' . $value['value'] . '%');
-                        }
-                    });
-                } else{
-                    // For other string fields
                     if (!empty($value['value'])) {
+                        $query->whereHas('agent', function($q) use ($value) {
+                            $q->where('username', 'like', '%' . $value['value'] . '%');
+                        });
+                    }
+                } elseif ($filter == 'supplier.username') {
+                    if (!empty($value['value'])) {
+                        $query->whereHas('supplier', function($q) use ($value) {
+                            $q->where('username', 'like', '%' . $value['value'] . '%');
+                        });
+                    }
+                } elseif ($filter == 'secondaryAgent.username') {
+                    if (!empty($value['value'])) {
+                        $query->whereHas('secondaryAgent', function($q) use ($value) {
+                            $q->where('username', 'like', '%' . $value['value'] . '%');
+                        });
+                    }
+                } else {
+                    if (!empty($value['value']) && $value['value'] != 'null') {
                         $query->where($filter, 'like', '%' . $value['value'] . '%');
                     }
                 }
+            }
         }
 
         // Sorting

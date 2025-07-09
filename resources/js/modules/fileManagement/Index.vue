@@ -32,7 +32,7 @@
                                     <Column field="document_access" header="Access Level" sortable></Column>
                                     <Column field="file" header="File" style="min-width: 200px">
                                         <template #body="slotProps">
-                                            <a :href="APP_URL + slotProps.data.files?.file_real_path" target="_blank" >
+                                            <a :href="S3Path + slotProps.data.files?.file_real_path" target="_blank" >
                                                 View 
                                             </a>
                                         </template> 
@@ -46,7 +46,7 @@
                                                     <i class="pi pi-file-edit"></i>
                                                 </a>
                                                 <a href="javascript:void(0)"
-                                                    @click="handelDelete($event, slotProps.data.id)" class="m-2 text-danger"
+                                                    @click="confirmDelete(slotProps.data.id)" class="m-2 text-danger"
                                                     title="Delete">
                                                     <i class="pi pi-trash"></i>
                                                 </a>
@@ -73,14 +73,14 @@
                 <div class="form-group col-md-12">
                     <label for="course">Label (*)</label>
                     <input type="text" v-model="form.document_name" class="form-control" id="course"
-                        aria-describedby="courseHelp" />                        
+                        aria-describedby="courseHelp" required/>                        
                     <small id="courseHelp" class="form-text text-danger" v-if="form.errors.has('document_name')"
                         v-html="form.errors.get('document_name')"></small>
                 </div>
                 <div class="form-group col-md-6">
                     <label for="document_access">Access Level (*)</label>
-                    <select v-model="form.document_access" class="form-control" id="document_access">
-                        <option v-for="level in AccessLevels" :key="level.id" :value="level.name">
+                    <select v-model="form.document_access" class="form-control" id="document_access" required>
+                        <option v-for="level in AccessLevels" :key="level.id" :value="level.name" >
                             {{ level.name }}
                         </option>
                     </select>
@@ -89,7 +89,7 @@
                 </div>
                 <div class="form-group col-md-6">
                     <label for="document_category">Category (*)</label>
-                    <select v-model="form.document_category" class="form-control" id="document_category">
+                    <select v-model="form.document_category" class="form-control" id="document_category" required>
                         <option v-for="DocumentCategory in DocumentCategories" :key="DocumentCategory.id" :value="DocumentCategory.name">
                             {{ DocumentCategory.name }}
                         </option>
@@ -105,7 +105,7 @@
                 </div>
                 <div class="form-group col-md-9">
                     <label for="file">File (*)</label>
-                    <input type="file" class="form-control" id="file" @change="handleFile">
+                    <input type="file" class="form-control" id="file" @change="handleFile" required>
                     <small class="text-danger" v-if="form.errors.has('file')"
                         v-html="form.errors.get('file')"></small>
                 </div>
@@ -139,6 +139,7 @@ export default {
     data() {
         return { 
             APP_URL: APP_URL,
+            S3Path: 'https://thinktravel.s3.us-east-1.amazonaws.com/',
             documents: [],
             AccessLevels: [
                 { id: 1, name: 'Public' },
@@ -274,7 +275,7 @@ export default {
                 });
                 if (document.files ) {
                     this.previous_file = document.files.file_name;
-                    this.previous_file_path = APP_URL+document.files.file_real_path;
+                    this.previous_file_path = this.S3Path+document.files.file_real_path;
                 }else{
                     this.previous_file = null;
                     this.previous_file_path = null;
@@ -283,6 +284,8 @@ export default {
             } else {
                 this.form.reset();
                 this.editMode = false;
+                this.previous_file = null;
+                this.previous_file_path = null;
             }
             this.visibleRight = true;
         },
