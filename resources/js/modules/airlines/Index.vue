@@ -422,12 +422,12 @@ export default {
             this.applyFilter('page', event);
         },
         applyFilter(actionType, event) {
-            this.getCountries();
+            this.getRecords();
         },
         onPageChange(event) {
             this.page = event.page + 1;
             this.rows = event.rows;
-            this.getCountries();
+            this.getRecords();
         }
     },
     mounted() {

@@ -499,6 +499,8 @@
                 }}</button>
         </form>
     </Sidebar>
+    <Toast />
+    <ConfirmPopup></ConfirmPopup>
 </template>
 <script>
 import axios from 'axios';
@@ -1384,7 +1386,7 @@ export default {
                 } finally {
                     this.isSubmitting = false; // hide loader
                     this.loading = false;
-                    this.getInquiries();
+                    this.getRecords();
                 }
         },
         async getRecord(id) {

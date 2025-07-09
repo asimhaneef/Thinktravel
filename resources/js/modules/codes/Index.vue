@@ -193,6 +193,7 @@ export default {
             filters: {
                 codes_list: { value: null },
                 data_entry: { value: null },
+                label: { value: null },
                 meaning: { value: null },
                 is_active: { value: null },
             },

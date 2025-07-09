@@ -32,8 +32,13 @@ class CodesListController extends Controller implements HasMiddleware
         if ($request->has('filters')) {
             $filters = json_decode($request->filters, true);
             foreach ($filters as $filter => $value) {
-                if (!empty($value['value'])) {                    
-                    $query->where($filter, 'like', '%' . $value['value'] . '%');
+                if (!empty($value['value'])) {   
+                    if($filter == 'is_active'){
+                        $val = $value['value'] == 'yes' || $value['value'] == 'Yes' ? 1 : 0;
+                        $query->where($filter, $val);
+                    }else{
+                        $query->where($filter, 'like', '%' . $value['value'] . '%');
+                    }                 
                 }
             }
         }

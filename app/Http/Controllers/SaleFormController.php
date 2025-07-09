@@ -214,5 +214,7 @@ class SaleFormController extends Controller implements HasMiddleware
     public function destroy(SaleForm $saleForm)
     {
         //
+        $saleForm->delete();
+        return response()->json(null, 204);
     }
 }
