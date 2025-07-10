@@ -1,5 +1,6 @@
 # Use PHP with Apache base image
-FROM php:8.3-apache
+#FROM php:8.3-apache
+FROM public.ecr.aws/t1q2t5e8/php-8.3:latest
 
 # Install PHP extensions and system dependencies
 RUN apt-get update && apt-get install -y \
