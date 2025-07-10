@@ -679,7 +679,7 @@ export default {
         }
     },
     mounted() {
-        this.getAgents();
+        // this.getAgents();
     },
     methods: {
         formatDate(date) {
@@ -875,8 +875,8 @@ export default {
       async getAgents() {
             try {
                 this.loading = true;
-                const response = await axios.get('/api/users');
-                this.agents = response.data.users.data.map(agent => ({
+                const response = await axios.get('/api/agents');
+                this.agents = response.data.agents.data.map(agent => ({
                         value: agent.id,
                         label:  agent.first_name +' '+ agent.last_name,
                     }));

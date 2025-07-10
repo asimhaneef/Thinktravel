@@ -231,7 +231,7 @@
                                 <li class="nav-item">
                                     <router-link to="/codes-list" class="nav-link">
                                         <i class="pi pi-sitemap nav-icon"></i>
-                                        <p>Codes List</p>
+                                        <p>Supplier List</p>
                                     </router-link>
                                 </li>
                         @endcan

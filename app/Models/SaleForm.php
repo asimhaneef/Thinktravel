@@ -75,10 +75,6 @@ class SaleForm extends Model
     {
         return $this->hasOne(Booking::class, 'inquiry_code', 'inquiry_no');
     }
-    public function supplier()
-    {
-        return $this->belongsTo(User::class, 'supplier');
-    }
     public function enquiry()
     {
         return $this->belongsTo(Booking::class, 'inquiryid');

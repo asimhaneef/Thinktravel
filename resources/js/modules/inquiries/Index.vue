@@ -37,7 +37,7 @@
                     <div class="card">
                         <div class="card-body p-0">
                                      
-                            <TabView>
+                            <TabView lazy>
                                 <TabPanel header="Flights">
                                     <FlightsTab />
                                 </TabPanel>

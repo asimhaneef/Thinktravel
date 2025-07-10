@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\CodesList;
 use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -185,9 +186,7 @@ class UserController extends Controller implements HasMiddleware
             'current_user_id' => $current_user_id,], 200); 
     }
     public function getSuppliers(){
-        $supplier = User::whereHas('roles', function ($query) {
-            $query->where('name', 'SUPPLIER'); // Assuming the role name is stored in a 'name' column
-        })->get();
+        $supplier = CodesList::query()->get();
 
         // Include roles in the query
         return response()->json(['suppliers' => $supplier], 200);

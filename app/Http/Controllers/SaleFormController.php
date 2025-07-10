@@ -29,7 +29,7 @@ class SaleFormController extends Controller implements HasMiddleware
     {
         //
         $request = request();
-        $query = SaleForm::with('agent', 'secondaryAgent', 'supplier', 'enquiry', 'user', 'customerDetails.member');
+        $query = SaleForm::with('agent', 'secondaryAgent', 'enquiry', 'user', 'customerDetails.member');
         
         // Date Range Filtering
         if ($request->has('dateFrom') && $request->has('dateTo')) {
@@ -44,12 +44,6 @@ class SaleFormController extends Controller implements HasMiddleware
                 if($filter == 'agent.username') {
                     if (!empty($value['value'])) {
                         $query->whereHas('agent', function($q) use ($value) {
-                            $q->where('username', 'like', '%' . $value['value'] . '%');
-                        });
-                    }
-                } elseif ($filter == 'supplier.username') {
-                    if (!empty($value['value'])) {
-                        $query->whereHas('supplier', function($q) use ($value) {
                             $q->where('username', 'like', '%' . $value['value'] . '%');
                         });
                     }

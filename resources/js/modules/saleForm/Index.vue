@@ -70,13 +70,13 @@
                 {{ slotProps.data.agent?.username }}
             </template>
         </Column>
-        <Column field="supplier.username" header="Supplier" sortable :showFilterMatchModes="false">
+        <Column field="supplier" header="Supplier" sortable :showFilterMatchModes="false">
             <template #filter="{ filterModel }">
                 <InputText v-model="filterModel.value" type="text"
                     placeholder="Search by Supplier" class="form-control" />
             </template>
             <template #body="slotProps">
-                {{ slotProps.data.supplier?.username }}
+                {{ slotProps.data.supplier }}
             </template>
         </Column>
         <Column field="last_name" header="Last Name" sortable :showFilterMatchModes="false">
@@ -233,7 +233,7 @@
                         </div>
                         <div class="form-group col-md-6">
                             <label for="gst" class="form-label-outside"> GST</label>
-                            <input id="gst" type="number" v-model="form.gst"  @input="handleGSTInput" class="form-control" placeholder="GST"  />
+                            <input id="gst" type="number" step="0.01" v-model="form.gst"  @input="handleGSTInput" class="form-control" placeholder="GST"  />
                         </div>
                         <div class="form-group col-md-6">
                             <label for="margin_ofgst" class="form-label-outside"> Margin Net of GST</label>
@@ -377,7 +377,7 @@
                                 v-model="form.supplier"
                                 :options="suppliers"
                                 optionLabel="label"
-                                optionValue="value"
+                                optionValue="label"
                                 placeholder="Select Supplier"
                                 filter
                                 showClear
@@ -827,10 +827,7 @@ export default {
             try {
                 this.loading = true;
                 const response = await axios.get('/api/suppliers');
-                this.suppliers = response.data.suppliers.map(supplier => ({
-                        value: supplier.id,
-                        label:  supplier.first_name +' '+ supplier.last_name,
-                    }));
+                this.suppliers = response.data.suppliers;
             } catch (error) {
                 console.error('Error fetching records:', error);
                 this.loading = false;
@@ -865,7 +862,7 @@ export default {
                     pnr: saleForm.pnr,
                     sale_type: saleForm.sale_type,
                     agent: saleForm.agent?.id,
-                    supplier: saleForm.supplier?.id,
+                    supplier: saleForm.supplier,
                     last_name: saleForm.last_name,
                     first_name: saleForm.first_name,
                     no_of_pax: saleForm.no_of_pax,

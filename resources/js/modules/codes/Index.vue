@@ -3,12 +3,12 @@
         <div class="container-fluid">
             <div class="mb-2 row">
                 <div class="col-sm-6">
-                    <h1 class="m-0">Codes List</h1>
+                    <h1 class="m-0">Supplier List</h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <button class="btn btn-success" icon="pi pi-arrow-left" @click="showSidebar(null)"
-                            style="border-radius: 20px;">Create Code</button>
+                            style="border-radius: 20px;">Create Supplier</button>
                     </ol>
                 </div>
             </div>
@@ -24,13 +24,13 @@
                                 :totalRecords="totalRecords" dataKey="id" filterDisplay="menu" :loading="loading"
                                 @update:filters="onFilter" @sort="onSort" @page="onPage">
                                 
-                                <Column field="codes_list" header="Codes List" style="min-width: 12rem" sortable
+                                <!-- <Column field="codes_list" header="Supplier List" style="min-width: 12rem" sortable
                                     :showFilterMatchModes="false">
                                     <template #filter="{ filterModel }">
                                         <InputText v-model="filterModel.value" type="text"
-                                            placeholder="Search by Codes List" class="form-control" />
+                                            placeholder="Search by Supplier List" class="form-control" />
                                     </template>
-                                </Column>
+                                </Column> -->
                                 <Column field="data_entry" header="Data Entry" style="min-width: 12rem" sortable
                                     :showFilterMatchModes="false">
                                     <template #filter="{ filterModel }">
@@ -100,7 +100,7 @@
             </div>
         </div>
     </div>
-    <Sidebar v-model:visible="visibleRight" :header="editMode ? 'Edit Code' : 'Create Code'" position="right"
+    <Sidebar v-model:visible="visibleRight" :header="editMode ? 'Edit Supplier' : 'Create Supplier'" position="right"
         style="width: 45%;" :dismissable="false">
         <hr>
         <form class="mt-3" @submit.prevent="editMode ? updateRecord() : createRecord()"
@@ -130,17 +130,6 @@
                     v-html="form.errors.get('meaning')"></small>
             </div>
             <div class="col-md-6 form-group">
-                <label for="codes_list">Codes List (*)</label>
-                <select type="text" v-model="form.codes_list" class="form-control" id="codes_list"
-                    aria-describedby="codes_listHelp" required>
-                    <option v-for="codeList in codeLists" :key="codeList.id" :value="codeList.id">
-                        {{ codeList.name }}
-                    </option>
-                </select>
-                <small id="codes_listHelp" class="form-text text-danger" v-if="form.errors.has('codes_list')"
-                    v-html="form.errors.get('codes_list')"></small>
-            </div>
-            <div class="col-md-6 form-group">
                 <label for="is_active">Is Active</label>
                 <select type="text" v-model="form.is_active" class="form-control" id="is_active"
                     aria-describedby="is_activeHelp">
@@ -153,8 +142,8 @@
             
         </div>
             <button type="submit" :loading="isSubmitting" :disabled="form.busy" class="btn btn-success">{{ editMode ?
-                "Update Code" :
-                "Create Code"
+                "Update Supplier" :
+                "Create Supplier"
                 }}</button>
         </form>
     </Sidebar>
