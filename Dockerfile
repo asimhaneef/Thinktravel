@@ -1,5 +1,6 @@
 # Use PHP with Apache base image
-FROM php:8.3-apache
+#FROM php:8.3-apache
+FROM public.ecr.aws/t1q2t5e8/php-8.3:latest
 
 # Install PHP extensions and system dependencies
 RUN apt-get update && apt-get install -y \
@@ -23,11 +24,11 @@ WORKDIR /var/www/html
 # Copy application source code
 COPY . .
 
-RUN composer update --legacy-peer-deps
+
 # Install Composer globally and PHP dependencies
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
     composer install --no-interaction --optimize-autoloader
-
+RUN composer update
 # Install frontend dependencies and build assets
 RUN yarn install && yarn build
 
