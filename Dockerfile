@@ -27,7 +27,7 @@ COPY . .
 # Install Composer globally and PHP dependencies
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
     composer install --no-interaction --optimize-autoloader
-RUN composer update --legacy-peer-deps
+RUN composer update
 # Install frontend dependencies and build assets
 RUN yarn install && yarn build
 
