@@ -46,8 +46,8 @@ return [
 
         's3' => [
             'driver' => 's3',
-            'key' => env('AWS_ACCESS_KEY_ID', null), // Will be null when not set
-            'secret' => env('AWS_SECRET_ACCESS_KEY', null), // Will be null when not set
+            // 'key' => env('AWS_ACCESS_KEY_ID', null), 
+            // 'secret' => env('AWS_SECRET_ACCESS_KEY', null), 
             'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
             'bucket' => env('AWS_BUCKET'),
             'url' => env('AWS_URL'),
